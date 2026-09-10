@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comunio Amiguines</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Karla:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --paper:#f6f3e8;
+    --surface:#fffdf7;
+    --surface-2:#efead7;
+    --ink:#141f18;
+    --muted:#6c6a5c;
+    --line:#ddd6bd;
+    --pitch:#1c7a4c;
+    --pitch-ink:#ffffff;
+    --gold:#8a6110;
+    --danger:#b23b23;
+    --good:#1c7a4c;
+    --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#c98500;
+    --c5:#e87ba4; --c6:#008300; --c7:#4a3aa7; --c8:#e34948;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --paper:#0e1712;
+      --surface:#16211a;
+      --surface-2:#1c2921;
+      --ink:#f1efe4;
+      --muted:#a3a091;
+      --line:#2b382e;
+      --pitch:#3aa873;
+      --pitch-ink:#06140d;
+      --gold:#dba847;
+      --danger:#e2705a;
+      --good:#3aa873;
+      --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500;
+      --c5:#d55181; --c6:#22a022; --c7:#9085e9; --c8:#e66767;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:#0e1712;
+    --surface:#16211a;
+    --surface-2:#1c2921;
+    --ink:#f1efe4;
+    --muted:#a3a091;
+    --line:#2b382e;
+    --pitch:#3aa873;
+    --pitch-ink:#06140d;
+    --gold:#dba847;
+    --danger:#e2705a;
+    --good:#3aa873;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500;
+    --c5:#d55181; --c6:#22a022; --c7:#9085e9; --c8:#e66767;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Karla", system-ui, sans-serif;
+    padding:0 16px 64px;
+  }
+  h1,h2,h3{font-family:"Bebas Neue", "Karla", sans-serif; letter-spacing:.02em; text-wrap:balance; margin:0;}
+  a{color:inherit;}
+  table{border-collapse:collapse;}
+  button{font-family:inherit;}
+  ::selection{background:var(--pitch); color:var(--pitch-ink);}
+
+  .wrap{max-width:960px; margin:0 auto;}
+
+  /* ---- header ---- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:22px 0 14px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .brand h1{font-size:clamp(28px,5vw,40px); color:var(--pitch);}
+  .brand .season{font-size:14px; color:var(--muted); font-weight:600;}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--surface-2); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600; color:var(--muted);
+    white-space:nowrap;
+  }
+  .chip strong{color:var(--ink); font-weight:800;}
+
+  /* ---- tabs ---- */
+  .tabs{
+    display:flex; gap:6px; padding:6px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:14px; margin:18px 0;
+    overflow-x:auto;
+  }
+  .tab-btn{
+    border:none; background:transparent; color:var(--muted);
+    padding:10px 16px; border-radius:10px; font-size:14px; font-weight:700;
+    cursor:pointer; white-space:nowrap; letter-spacing:.02em;
+  }
+  .tab-btn.active{background:var(--surface); color:var(--pitch); box-shadow:0 1px 0 var(--line);}
+  .tab-btn:focus-visible{outline:2px solid var(--pitch); outline-offset:2px;}
+
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+
+  /* ---- generic cards / sections ---- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:20px; margin-bottom:18px;
+  }
+  .card h2{font-size:22px; margin-bottom:4px;}
+  .card .sub{color:var(--muted); font-size:14px; margin-bottom:14px;}
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;
+  }
+  .stat{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px;
+  }
+  .stat .label{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;}
+  .stat .value{font-family:"Bebas Neue"; font-size:30px; line-height:1.2; font-variant-numeric:tabular-nums;}
+  .stat .value.gold{color:var(--gold);}
+  .stat .value.danger{color:var(--danger);}
+  .stat .value.pitch{color:var(--pitch);}
+  @media (max-width:640px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
+
+  .dot{width:11px; height:11px; border-radius:50%; display:inline-block; flex:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
+  .team-cell{display:flex; align-items:center; gap:9px; font-weight:700;}
+
+  .table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  table.data{width:100%; min-width:560px; font-size:14px;}
+  table.data th, table.data td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap;}
+  table.data th{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); background:var(--surface-2);}
+  table.data td.num, table.data th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.data tbody tr:last-child td{border-bottom:none;}
+  table.data tbody tr:hover{background:var(--surface-2);}
+  .pend-ok{color:var(--good); font-weight:800;}
+  .pend-due{color:var(--danger); font-weight:800;}
+  .rank-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:6px; font-size:12px; font-weight:800;
+    background:var(--surface-2); color:var(--muted);
+  }
+  tr[data-rank="1"] .rank-badge{background:var(--gold); color:#2a1c02;}
+
+  /* ---- bar chart ---- */
+  .barchart{display:flex; flex-direction:column; gap:10px;}
+  .barrow{display:grid; grid-template-columns:150px 1fr 56px; align-items:center; gap:10px;}
+  .barrow .name{font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .bartrack{background:var(--surface-2); border-radius:6px; height:16px; position:relative; overflow:hidden;}
+  .barfill{height:100%; border-radius:6px 2px 2px 6px;}
+  .barrow .val{font-variant-numeric:tabular-nums; font-weight:800; text-align:right; font-size:13px;}
+  @media (max-width:640px){ .barrow{grid-template-columns:96px 1fr 44px;} .barrow .name span.full{display:none;} }
+
+  /* ---- jornada chips ---- */
+  .jgrid{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;}
+  .vuelta-label{font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:14px 0 8px;}
+  .jchip{
+    width:42px; height:36px; border-radius:9px; border:1px solid var(--line);
+    background:var(--surface); color:var(--muted); font-weight:700; font-size:13px;
+    cursor:pointer; position:relative; font-variant-numeric:tabular-nums;
+  }
+  .jchip.played{background:var(--pitch); color:var(--pitch-ink); border-color:var(--pitch);}
+  .jchip.double::after{
+    content:"x2"; position:absolute; top:-7px; right:-7px; background:var(--gold); color:#2a1c02;
+    font-size:9px; font-weight:800; border-radius:999px; padding:1px 4px; line-height:1.3;
+  }
+  .jchip.selected{outline:2px solid var(--ink); outline-offset:2px;}
+  .jchip:focus-visible{outline:2px solid var(--pitch); outline-offset:2px;}
+
+  .jdetail-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .empty-note{color:var(--muted); font-size:14px; padding:18px 0;}
+
+  /* ---- reglas ---- */
+  .prose p{line-height:1.6; max-width:65ch;}
+  .prose h3{font-size:19px; margin:22px 0 8px; color:var(--pitch);}
+  .prose h3:first-child{margin-top:0;}
+  .mini-table{font-size:13px; margin:10px 0;}
+  .mini-table th, .mini-table td{padding:6px 12px;}
+  .fixture-list{display:flex; flex-direction:column; gap:8px; margin:10px 0;}
+  .fixture{display:flex; gap:10px; align-items:baseline; font-size:14px;}
+  .fixture .jn{font-family:"Bebas Neue"; color:var(--gold); font-size:16px; min-width:54px;}
+
+  /* ---- admin ---- */
+  .pin-box{max-width:280px; display:flex; flex-direction:column; gap:10px;}
+  input[type="text"], input[type="password"], input[type="number"], select{
+    font-family:inherit; font-size:14px; padding:9px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    width:100%;
+  }
+  input:focus-visible, select:focus-visible{outline:2px solid var(--pitch); outline-offset:1px;}
+  .btn{
+    border:none; border-radius:9px; padding:10px 16px; font-weight:800; font-size:14px;
+    cursor:pointer; background:var(--pitch); color:var(--pitch-ink); letter-spacing:.01em;
+  }
+  .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
+  .admin-grid{display:grid; grid-template-columns:1fr 70px 70px; gap:8px; align-items:center; margin-bottom:8px;}
+  .admin-grid.head{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  .pay-grid{display:grid; grid-template-columns:1fr 130px 130px; gap:8px; align-items:start; margin-bottom:10px;}
+  .pay-grid.head{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700; align-items:center;}
+  .pay-cell{display:flex; flex-direction:column; gap:5px;}
+  .conf-label{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); font-weight:700; cursor:pointer;}
+  .conf-label input{width:auto;}
+  @media (max-width:640px){ .pay-grid{grid-template-columns:1fr 1fr;} .pay-grid.head{display:none;} .pay-grid > .team-cell{grid-column:1 / -1;} }
+  .liq-textarea{
+    width:100%; font-family:"Karla", monospace; font-size:13px; line-height:1.5; padding:12px;
+    border-radius:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); resize:vertical;
+  }
+  .save-row{display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap;}
+  .save-msg{font-size:13px; color:var(--good); font-weight:700; opacity:0; transition:opacity .3s;}
+  .save-msg.show{opacity:1;}
+  .offline-note{font-size:13px; color:var(--gold); background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:14px;}
+
+  footer{max-width:960px; margin:30px auto 0; color:var(--muted); font-size:12px; text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <h1>⚽ Comunio Amiguines</h1>
+      <span class="season">Temporada 26/27</span>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <span class="chip" id="chip-jornada">Jornada actual: <strong>&nbsp;–</strong></span>
+      <span class="chip" id="chip-deadline">Próxima liquidación: <strong>&nbsp;–</strong></span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="resumen" role="tab">Resumen</button>
+    <button class="tab-btn" data-tab="jornadas" role="tab">Jornadas</button>
+    <button class="tab-btn" data-tab="reglas" role="tab">Reglas</button>
+    <button class="tab-btn" data-tab="admin" role="tab">Admin</button>
+  </nav>
+
+  <main>
+    <!-- RESUMEN -->
+    <section id="tab-resumen" class="tabpanel active">
+      <div id="offline-note-resumen"></div>
+
+      <div class="stat-grid" id="stat-grid"></div>
+
+      <div class="card">
+        <h2>Clasificación por puntos</h2>
+        <div class="sub">Suma de puntos Comunio en todas las jornadas jugadas (1ª + 2ª vuelta)</div>
+        <div class="barchart" id="barchart"></div>
+      </div>
+
+      <div class="card">
+        <h2>Cuentas de cada equipo</h2>
+        <div class="sub">Lo que debe cada equipo según su clasificación semanal, lo que ha ingresado por Bizum y lo que queda pendiente. <span style="color:var(--gold);">*</span> Der Poso gestiona el pozo de Comunio Premium, así que a su cuenta ya se le restan 36€.</div>
+        <div class="table-scroll">
+          <table class="data" id="tbl-cuentas">
+            <thead>
+              <tr>
+                <th>#</th><th>Equipo</th><th class="num">Puntos</th>
+                <th class="num">Debe</th><th class="num">Ingresado</th><th>Confirmado</th><th class="num">Pendiente</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Compartir liquidación</h2>
+        <div class="sub">Resumen listo para pegar en el grupo de WhatsApp, con los datos de ahora mismo</div>
+        <textarea class="liq-textarea" id="liq-preview" rows="12" readonly></textarea>
+        <div class="save-row">
+          <button class="btn" id="btn-copy-liq">📋 Copiar</button>
+          <button class="btn ghost" id="btn-share-liq" style="display:none;">Compartir</button>
+          <span class="save-msg" id="liq-copied-msg">Copiado ✓</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- JORNADAS -->
+    <section id="tab-jornadas" class="tabpanel">
+      <div class="card">
+        <h2>Jornada a jornada</h2>
+        <div class="sub">Elige una jornada para ver la posición, puntos y coste de cada equipo esa semana</div>
+
+        <div class="vuelta-label">1ª vuelta</div>
+        <div class="jgrid" id="jgrid-v1"></div>
+        <div class="vuelta-label">2ª vuelta</div>
+        <div class="jgrid" id="jgrid-v2"></div>
+
+        <div id="jornada-detail" style="margin-top:18px;"></div>
+      </div>
+    </section>
+
+    <!-- REGLAS -->
+    <section id="tab-reglas" class="tabpanel">
+      <div class="card prose">
+        <h2 style="margin-bottom:14px;">Reglas de pago</h2>
+
+        <h3>Lo que se paga cada jornada</h3>
+        <p>Cada jornada, los 8 equipos se ordenan según su posición en esa semana (puntos de Comunio). Cuanto peor la posición, más se paga, según esta tabla:</p>
+        <div class="table-scroll">
+          <table class="data mini-table" id="tbl-cost-rules">
+            <thead><tr><th>Posición</th><th class="num">1º</th><th class="num">2º</th><th class="num">3º</th><th class="num">4º</th><th class="num">5º</th><th class="num">6º</th><th class="num">7º</th><th class="num">8º</th></tr></thead>
+            <tbody><tr><td>€ a pagar</td><td class="num">0€</td><td class="num">1€</td><td class="num">2€</td><td class="num">3€</td><td class="num">4€</td><td class="num">5€</td><td class="num">7€</td><td class="num">8€</td></tr></tbody>
+          </table>
+        </div>
+
+        <h3>Penalización por baja puntuación</h3>
+        <p>Además, si un equipo no llega a <strong>40 puntos</strong> en una jornada de la 1ª vuelta (o a <strong>35 puntos</strong> en la 2ª vuelta), paga <strong>0,50€</strong> extra esa semana, independientemente de su posición.</p>
+
+        <h3>Jornadas dobles</h3>
+        <p>Coincidiendo con el Clásico y el Derbi sevillano, estas jornadas cuentan <strong>doble</strong>: tanto el coste por posición como la penalización se multiplican por dos.</p>
+        <div class="fixture-list" id="fixture-list"></div>
+
+        <h3>Cuota inicial y pozo de Comunio Premium</h3>
+        <p>Al liquidar la 1ª vuelta, cada equipo suma <strong>5€ de cuota inicial</strong> a lo que deba por posiciones y penalizaciones. Además, <strong>Der Poso</strong> adelantó el pozo de <strong>36€</strong> de la suscripción a Comunio Premium, así que ese importe se le descuenta a él de su liquidación de la 1ª vuelta.</p>
+
+        <h3>Fechas de liquidación</h3>
+        <p>La 1ª vuelta se liquida el <strong id="fecha-v1">10 de enero de 2027</strong> y la 2ª vuelta el <strong id="fecha-v2">30 de mayo de 2027</strong>. Ese día se hace la cuenta de todo lo acumulado y cada equipo paga (o cobra) la diferencia.</p>
+
+        <h3>Cómo se paga</h3>
+        <p>Los pagos se hacen por Bizum a quien lleve el bote esa vuelta. El administrador registra en la pestaña <strong>Admin</strong> lo que cada equipo ha ingresado, para que aquí se vea siempre quién tiene pendiente y quién está al día.</p>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="tab-admin" class="tabpanel">
+      <div class="card" id="admin-locked">
+        <h2>Panel de administración</h2>
+        <div class="sub">Introduce el PIN para actualizar jornadas y pagos</div>
+        <div class="pin-box">
+          <input type="password" inputmode="numeric" id="pin-input" placeholder="PIN" />
+          <button class="btn" id="pin-submit">Entrar</button>
+          <div id="pin-error" style="color:var(--danger); font-size:13px; display:none;">PIN incorrecto</div>
+        </div>
+      </div>
+
+      <div id="admin-unlocked" style="display:none;">
+        <div class="card">
+          <h2>Importar histórico</h2>
+          <div class="sub">Un solo clic para cargar las jornadas 1-4 y los pagos que ya teníais en el Excel, en vez de teclearlos a mano. Solo hace falta hacerlo una vez.</div>
+          <div class="save-row">
+            <button class="btn ghost" id="btn-import-historico">Importar histórico</button>
+            <span class="save-msg" id="import-msg">Importado ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Actualizar una jornada</h2>
+          <div class="sub">Elige la jornada e introduce la posición y los puntos de cada equipo</div>
+          <select id="jornada-select" style="max-width:320px; margin-bottom:14px;"></select>
+          <div id="jornada-form"></div>
+          <div class="save-row">
+            <button class="btn" id="save-jornada">Guardar jornada</button>
+            <span class="save-msg" id="save-jornada-msg">Guardado ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Ingresos por Bizum</h2>
+          <div class="sub">Cuánto ha ingresado cada equipo en cada vuelta</div>
+          <div class="pay-grid head"><div>Equipo</div><div>1ª vuelta</div><div>2ª vuelta</div></div>
+          <div id="pay-form"></div>
+          <div class="save-row">
+            <button class="btn" id="save-pagos">Guardar pagos</button>
+            <span class="save-msg" id="save-pagos-msg">Guardado ✓</span>
+          </div>
+        </div>
+
+        <button class="btn ghost" id="admin-logout">Salir del modo admin</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>Datos gestionados por el grupo · Comunio Amiguines 26/27</footer>
+</div>
+
+<script type="module">
+// Los SDK de Firebase se cargan de forma dinámica más abajo (dentro de un
+// try/catch), así la página funciona con datos de ejemplo aunque Firebase
+// no esté configurado todavía o no se pueda cargar.
+var FIREBASE_APP_URL = "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+var FIREBASE_FS_URL  = "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ============================================================
+// CONFIGURA AQUÍ TU PROYECTO DE FIREBASE (ver README.md)
+// Firebase console -> Configuración del proyecto -> Tus apps -> Web app
+// ============================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDEFSriXKpr1ZBoIyMAHILmWwB-qvsqhE4",
+  authDomain: "comunio-amiguines.firebaseapp.com",
+  projectId: "comunio-amiguines",
+  storageBucket: "comunio-amiguines.firebasestorage.app",
+  messagingSenderId: "299008336877",
+  appId: "1:299008336877:web:8499d2482296bdd1f5bde4"
+};
+
+(function(){
+
+  // ---------- static config ----------
+  var TEAMS = [
+    {slug:"jardinerito", name:"JARDINERITO DE TARRASA F.C", color:"var(--c1)"},
+    {slug:"pedrindes",   name:"PEDRINDES",                    color:"var(--c2)"},
+    {slug:"samaritanas", name:"SAMARITANAS DEL AMOR C.F",     color:"var(--c3)"},
+    {slug:"derposo",     name:"DER POSO",                     color:"var(--c4)"},
+    {slug:"shiquinino",  name:"SHIQUININO FC",                color:"var(--c5)"},
+    {slug:"carlosklop",  name:"CARLOS KLOP",                  color:"var(--c6)"},
+    {slug:"arroz",       name:"ARROZ DEL SENYORET F.C",       color:"var(--c7)"},
+    {slug:"maravilla",   name:"MARAVILLA F.C",                color:"var(--c8)"}
+  ];
+  var TOTAL_JORNADAS = 38;
+  var V1_LAST = 19; // jornadas 1-19 = 1a vuelta, 20-38 = 2a vuelta
+  var COST_TABLE = [0,1,2,3,4,5,7,8]; // index = posicion-1
+  var THRESHOLD = {1:40, 2:35};
+  var PENALTY = 0.5;
+  var CUOTA_INICIAL = 5;
+  var POZO_PREMIUM = 36;
+  var DOUBLES = {
+    10:{fixture:"FC Barcelona – Real Madrid", vuelta:1},
+    13:{fixture:"Sevilla FC – Real Betis",     vuelta:1},
+    23:{fixture:"Real Betis – Sevilla FC",     vuelta:2},
+    35:{fixture:"Real Madrid – FC Barcelona",  vuelta:2}
+  };
+  var DEADLINE_V1 = new Date("2027-01-10T00:00:00");
+  var DEADLINE_V2 = new Date("2027-05-30T00:00:00");
+  var ADMIN_PIN = "2627"; // cámbialo si quieres
+
+  function vueltaOf(n){ return n<=V1_LAST ? 1 : 2; }
+  function thresholdOf(n){ return THRESHOLD[vueltaOf(n)]; }
+  function isDouble(n){ return !!DOUBLES[n]; }
+  function costFor(pos){ pos = Math.max(1, Math.min(8, pos||8)); return COST_TABLE[pos-1]; }
+
+  // ---------- histórico conocido (jornadas 1-4 + pagos ya registrados) ----------
+  // Se usa (a) como respaldo si Firebase no está configurado/disponible, y
+  // (b) para el botón "Importar histórico" del panel Admin.
+  var FALLBACK_JORNADAS = {
+    "1": {results:{jardinerito:{pos:5,pts:34}, pedrindes:{pos:2,pts:49}, samaritanas:{pos:4,pts:35}, derposo:{pos:4,pts:35}, shiquinino:{pos:8,pts:18}, carlosklop:{pos:1,pts:64}, arroz:{pos:6,pts:30}, maravilla:{pos:7,pts:28}}},
+    "2": {results:{jardinerito:{pos:5,pts:45}, pedrindes:{pos:2,pts:55}, samaritanas:{pos:4,pts:48}, derposo:{pos:6,pts:42}, shiquinino:{pos:8,pts:-6}, carlosklop:{pos:1,pts:58}, arroz:{pos:3,pts:53}, maravilla:{pos:7,pts:37}}},
+    "3": {results:{jardinerito:{pos:3,pts:49}, pedrindes:{pos:6,pts:40}, samaritanas:{pos:1,pts:86}, derposo:{pos:7,pts:39}, shiquinino:{pos:5,pts:44}, carlosklop:{pos:2,pts:61}, arroz:{pos:4,pts:46}, maravilla:{pos:8,pts:35}}},
+    "4": {results:{jardinerito:{pos:3,pts:63}, pedrindes:{pos:1,pts:76}, samaritanas:{pos:8,pts:29}, derposo:{pos:6,pts:45}, shiquinino:{pos:7,pts:41}, carlosklop:{pos:2,pts:68}, arroz:{pos:5,pts:47}, maravilla:{pos:4,pts:60}}}
+  };
+  var FALLBACK_PAYMENTS = {
+    jardinerito:{v1:10,v2:0}, pedrindes:{v1:20,v2:0}, samaritanas:{v1:0,v2:0}, derposo:{v1:0,v2:0},
+    shiquinino:{v1:0,v2:0}, carlosklop:{v1:20,v2:0}, arroz:{v1:10,v2:0}, maravilla:{v1:0,v2:0}
+  };
+
+  // ---------- live state ----------
+  var db = null;             // pequeño adaptador sobre Firestore (ver abajo)
+  var usingFallback = false;
+  var jornadasState = {};   // "n" -> {results:{slug:{pos,pts}}}
+  var paymentsState = {};   // slug -> {v1,v2}
+  var selectedJornada = null;
+  var adminUnlocked = false;
+
+  function euros(n){
+    n = Math.round(n*100)/100;
+    var s = n.toFixed(2).replace(/\.00$/,"");
+    if(/\.\d0$/.test(s)) s = s.replace(/0$/,"");
+    return s.replace(".", ",") + "€";
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString("es-ES", {day:"numeric", month:"long", year:"numeric"});
+  }
+  function daysUntil(d){
+    var ms = d.getTime() - Date.now();
+    return Math.ceil(ms/86400000);
+  }
+
+  // ---------- derived computations ----------
+  function computeTeamTotals(){
+    var totals = {};
+    TEAMS.forEach(function(t){ totals[t.slug] = {slug:t.slug, name:t.name, color:t.color, points:0, played:0, v1Due:0, v2Due:0}; });
+
+    Object.keys(jornadasState).forEach(function(key){
+      var n = parseInt(key, 10);
+      if(!n || n<1 || n>TOTAL_JORNADAS) return;
+      var jd = jornadasState[key];
+      if(!jd || !jd.results) return;
+      var vuelta = vueltaOf(n);
+      var threshold = thresholdOf(n);
+      var mult = isDouble(n) ? 2 : 1;
+      TEAMS.forEach(function(t){
+        var r = jd.results[t.slug];
+        if(!r || r.pos == null || r.pts == null) return;
+        var tt = totals[t.slug];
+        tt.points += Number(r.pts) || 0;
+        tt.played += 1;
+        var cost = costFor(r.pos) * mult;
+        var penalty = (Number(r.pts) < threshold ? PENALTY : 0) * mult;
+        if(vuelta === 1) tt.v1Due += cost + penalty;
+        else tt.v2Due += cost + penalty;
+      });
+    });
+
+    var out = TEAMS.map(function(t){
+      var tt = totals[t.slug];
+      var pay = paymentsState[t.slug] || {v1:0, v2:0};
+      var pozoDescuento = (t.slug === "derposo") ? POZO_PREMIUM : 0;
+      var totalDue = tt.v1Due + CUOTA_INICIAL + tt.v2Due - pozoDescuento;
+      var recibido = (Number(pay.v1)||0) + (Number(pay.v2)||0);
+      tt.pozoDescuento = pozoDescuento;
+      tt.totalDue = totalDue;
+      tt.recibido = recibido;
+      tt.pendiente = totalDue - recibido;
+
+      var v1Relevant = (Number(pay.v1)||0) > 0.001;
+      var v2Relevant = (Number(pay.v2)||0) > 0.001;
+      if(!v1Relevant && !v2Relevant){ tt.confirmState = "none"; }
+      else {
+        var okV1 = !v1Relevant || !!pay.v1Confirmed;
+        var okV2 = !v2Relevant || !!pay.v2Confirmed;
+        tt.confirmState = (okV1 && okV2) ? "ok" : "pending";
+      }
+      tt.pay = pay;
+      return tt;
+    });
+    out.sort(function(a,b){
+      if(b.points !== a.points) return b.points - a.points;
+      return TEAMS.findIndex(function(t){return t.slug===a.slug;}) - TEAMS.findIndex(function(t){return t.slug===b.slug;});
+    });
+    return out;
+  }
+
+  function maxPlayedJornada(){
+    var max = 0;
+    Object.keys(jornadasState).forEach(function(k){
+      var n = parseInt(k,10);
+      var jd = jornadasState[k];
+      if(jd && jd.results && Object.keys(jd.results).some(function(s){ var r=jd.results[s]; return r && r.pos!=null && r.pts!=null; })){
+        if(n>max) max = n;
+      }
+    });
+    return max;
+  }
+
+  // ---------- rendering: header ----------
+  function renderHeader(){
+    var maxJ = maxPlayedJornada();
+    document.getElementById("chip-jornada").innerHTML =
+      "Jornada actual: <strong>" + (maxJ ? maxJ + " / " + TOTAL_JORNADAS : "por empezar") + "</strong>";
+
+    var now = Date.now();
+    var target, label;
+    if(now < DEADLINE_V1.getTime()){ target = DEADLINE_V1; label = "1ª vuelta"; }
+    else if(now < DEADLINE_V2.getTime()){ target = DEADLINE_V2; label = "2ª vuelta"; }
+    else { target = null; }
+    if(target){
+      var days = daysUntil(target);
+      document.getElementById("chip-deadline").innerHTML =
+        "Liquidación " + label + ": <strong>" + days + " días</strong>";
+    } else {
+      document.getElementById("chip-deadline").innerHTML = "Liquidación: <strong>completada</strong>";
+    }
+  }
+
+  // ---------- rendering: resumen ----------
+  function renderResumen(){
+    var totals = computeTeamTotals();
+    var totalRecaudado = totals.reduce(function(s,t){return s+t.recibido;},0);
+    var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
+    var maxJ = maxPlayedJornada();
+    var lider = totals[0];
+
+    var stats = [
+      {label:"Recaudado (Bizum)", value:euros(totalRecaudado), cls:"pitch"},
+      {label:"Pendiente de cobro", value:euros(totalPendiente), cls: totalPendiente>0 ? "danger":"pitch"},
+      {label:"Jornadas jugadas", value:maxJ + " / " + TOTAL_JORNADAS, cls:""},
+      {label:"Líder de puntos", value: lider ? lider.name.split(" ").slice(0,2).join(" ") : "–", cls:"gold"}
+    ];
+    document.getElementById("stat-grid").innerHTML = stats.map(function(s){
+      return '<div class="stat"><div class="label">'+s.label+'</div><div class="value '+s.cls+'">'+s.value+'</div></div>';
+    }).join("");
+
+    // bar chart, sorted by points desc (already sorted)
+    var maxPts = Math.max(1, totals[0] ? totals[0].points : 1);
+    document.getElementById("barchart").innerHTML = totals.map(function(t){
+      var pct = Math.max(2, Math.round((Math.max(0,t.points)/maxPts)*100));
+      return '<div class="barrow">' +
+        '<div class="name"><span class="dot" style="background:'+t.color+'"></span><span class="full">'+t.name+'</span></div>' +
+        '<div class="bartrack"><div class="barfill" style="width:'+pct+'%; background:'+t.color+'"></div></div>' +
+        '<div class="val">'+t.points+'</div>' +
+        '</div>';
+    }).join("");
+
+    // cuentas table
+    var tbody = totals.map(function(t, i){
+      var pendCls = t.pendiente > 0.001 ? "pend-due" : "pend-ok";
+      var pendTxt = t.pendiente > 0.001 ? euros(t.pendiente)
+        : (t.pendiente < -0.001 ? "A favor " + euros(-t.pendiente) : "Al día");
+      var potNote = t.pozoDescuento ? ' <span title="Incluye -'+euros(t.pozoDescuento)+' del pozo Comunio Premium" style="color:var(--gold); cursor:help;">*</span>' : '';
+
+      var confHtml, confTitle = "";
+      if(t.confirmState === "ok"){
+        var dates = [t.pay.v1ConfirmedAt, t.pay.v2ConfirmedAt].filter(Boolean).map(function(iso){
+          return new Date(iso).toLocaleDateString("es-ES");
+        });
+        if(dates.length) confTitle = ' title="Confirmado el '+dates.join(" y el ")+'"';
+        confHtml = '<span class="pend-ok"'+confTitle+'>✔ Sí</span>';
+      } else if(t.confirmState === "pending"){
+        confHtml = '<span style="color:var(--gold); font-weight:800;">Sin confirmar</span>';
+      } else {
+        confHtml = '<span style="color:var(--muted);">—</span>';
+      }
+
+      return '<tr data-rank="'+(i+1)+'">' +
+        '<td><span class="rank-badge">'+(i+1)+'</span></td>' +
+        '<td><div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div></td>' +
+        '<td class="num">'+t.points+'</td>' +
+        '<td class="num">'+euros(t.totalDue)+potNote+'</td>' +
+        '<td class="num">'+euros(t.recibido)+'</td>' +
+        '<td>'+confHtml+'</td>' +
+        '<td class="num '+pendCls+'">'+pendTxt+'</td>' +
+        '</tr>';
+    }).join("");
+    document.querySelector("#tbl-cuentas tbody").innerHTML = tbody;
+
+    var noteEl = document.getElementById("offline-note-resumen");
+    noteEl.innerHTML = usingFallback
+      ? '<div class="offline-note">Esta vista usa datos de ejemplo porque Firebase todavía no está configurado (o no se pudo conectar). Sigue el README para conectar tu proyecto — hasta entonces, lo que hagas en el panel Admin no se guardará para los demás.</div>'
+      : "";
+
+    renderLiquidacionPreview(totals, totalRecaudado, totalPendiente);
+  }
+
+  // ---------- rendering: compartir liquidación ----------
+  function buildLiquidacionText(totals, totalRecaudado, totalPendiente){
+    var lines = [];
+    lines.push("🏆 COMUNIO AMIGUINES 26/27");
+    lines.push("Liquidación a " + fmtDate(new Date()));
+    lines.push("");
+    totals.forEach(function(t, i){
+      var pendTxt;
+      if(t.pendiente > 0.001) pendTxt = "pendiente " + euros(t.pendiente);
+      else if(t.pendiente < -0.001) pendTxt = "a favor " + euros(-t.pendiente);
+      else pendTxt = "al día";
+      var confMark = t.confirmState === "ok" ? " ✅" : (t.confirmState === "pending" ? " ⏳" : "");
+      lines.push((i+1)+". "+t.name+" — "+t.points+" pts — debe "+euros(t.totalDue)+" — ingresado "+euros(t.recibido)+confMark+" — "+pendTxt);
+    });
+    lines.push("");
+    lines.push("💰 Total recaudado: " + euros(totalRecaudado));
+    lines.push("⏳ Pendiente de cobro: " + euros(totalPendiente));
+    return lines.join("\n");
+  }
+
+  function renderLiquidacionPreview(totals, totalRecaudado, totalPendiente){
+    var ta = document.getElementById("liq-preview");
+    if(!ta || document.activeElement === ta) return;
+    ta.value = buildLiquidacionText(totals, totalRecaudado, totalPendiente);
+  }
+
+  async function copyLiquidacion(){
+    var ta = document.getElementById("liq-preview");
+    var text = ta.value;
+    var ok = false;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    }catch(e){ ok = false; }
+    if(!ok){
+      try{
+        ta.focus(); ta.select();
+        ok = document.execCommand("copy");
+      }catch(e){ ok = false; }
+    }
+    if(ok) flashSaved("liq-copied-msg");
+  }
+
+  async function shareLiquidacion(){
+    var text = document.getElementById("liq-preview").value;
+    try{ if(navigator.share) await navigator.share({text:text}); }catch(e){ /* cancelado o no soportado */ }
+  }
+
+  // ---------- rendering: jornadas ----------
+  function renderJornadaGrids(){
+    function buildGrid(from, to){
+      var html = "";
+      for(var n=from; n<=to; n++){
+        var jd = jornadasState[String(n)];
+        var played = jd && jd.results && Object.keys(jd.results).some(function(s){var r=jd.results[s]; return r && r.pos!=null && r.pts!=null;});
+        var cls = "jchip" + (played?" played":"") + (isDouble(n)?" double":"") + (selectedJornada===n?" selected":"");
+        html += '<button type="button" class="'+cls+'" data-j="'+n+'" aria-label="Jornada '+n+'">'+n+'</button>';
+      }
+      return html;
+    }
+    document.getElementById("jgrid-v1").innerHTML = buildGrid(1, V1_LAST);
+    document.getElementById("jgrid-v2").innerHTML = buildGrid(V1_LAST+1, TOTAL_JORNADAS);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".jchip"), function(btn){
+      btn.addEventListener("click", function(){
+        selectedJornada = parseInt(btn.getAttribute("data-j"),10);
+        renderJornadaGrids();
+        renderJornadaDetail();
+      });
+    });
+  }
+
+  function renderJornadaDetail(){
+    var el = document.getElementById("jornada-detail");
+    if(!selectedJornada){ el.innerHTML = '<div class="empty-note">Elige una jornada arriba para ver el detalle.</div>'; return; }
+    var n = selectedJornada;
+    var jd = jornadasState[String(n)];
+    var vuelta = vueltaOf(n);
+    var dbl = DOUBLES[n];
+    var head = '<div class="jdetail-head"><h3 style="font-family:\'Bebas Neue\'; font-size:22px;">Jornada '+n+'</h3>' +
+      '<span class="chip">'+vuelta+'ª vuelta</span>' +
+      (dbl ? '<span class="chip" style="color:var(--gold); border-color:var(--gold);">x2 · '+dbl.fixture+'</span>' : '') +
+      '</div>';
+
+    var hasData = jd && jd.results && Object.keys(jd.results).some(function(s){var r=jd.results[s]; return r && r.pos!=null && r.pts!=null;});
+    if(!hasData){
+      el.innerHTML = head + '<div class="empty-note">Aún no se han introducido resultados para esta jornada. Se pueden añadir desde el panel de Admin.</div>';
+      return;
+    }
+    var threshold = thresholdOf(n);
+    var mult = isDouble(n) ? 2 : 1;
+    var rows = TEAMS.map(function(t){
+      var r = jd.results[t.slug] || {};
+      var cost = r.pos!=null ? costFor(r.pos)*mult : null;
+      var pen = (r.pts!=null && r.pts < threshold) ? PENALTY*mult : 0;
+      return {t:t, r:r, cost:cost, pen:pen};
+    }).filter(function(row){ return row.r.pos!=null; })
+      .sort(function(a,b){ return a.r.pos - b.r.pos; });
+
+    var body = rows.map(function(row){
+      var total = (row.cost||0) + row.pen;
+      return '<tr>' +
+        '<td class="num">'+row.r.pos+'</td>' +
+        '<td><div class="team-cell"><span class="dot" style="background:'+row.t.color+'"></span>'+row.t.name+'</div></td>' +
+        '<td class="num">'+row.r.pts+'</td>' +
+        '<td class="num">'+euros(row.cost||0)+'</td>' +
+        '<td class="num">'+(row.pen? euros(row.pen) : "—")+'</td>' +
+        '<td class="num">'+euros(total)+'</td>' +
+        '</tr>';
+    }).join("");
+
+    el.innerHTML = head + '<div class="table-scroll"><table class="data">' +
+      '<thead><tr><th>Pos</th><th>Equipo</th><th class="num">Puntos</th><th class="num">Coste</th><th class="num">Penal.</th><th class="num">Total</th></tr></thead>' +
+      '<tbody>'+body+'</tbody></table></div>';
+  }
+
+  // ---------- rendering: reglas ----------
+  function renderReglas(){
+    document.getElementById("fecha-v1").textContent = fmtDate(DEADLINE_V1);
+    document.getElementById("fecha-v2").textContent = fmtDate(DEADLINE_V2);
+    var keys = Object.keys(DOUBLES).map(Number).sort(function(a,b){return a-b;});
+    document.getElementById("fixture-list").innerHTML = keys.map(function(n){
+      return '<div class="fixture"><span class="jn">J'+n+'</span><span>'+DOUBLES[n].fixture+'</span></div>';
+    }).join("");
+  }
+
+  // ---------- rendering: admin ----------
+  function populateJornadaSelect(){
+    var sel = document.getElementById("jornada-select");
+    var html = "";
+    for(var n=1;n<=TOTAL_JORNADAS;n++){
+      var jd = jornadasState[String(n)];
+      var played = jd && jd.results && Object.keys(jd.results).some(function(s){var r=jd.results[s]; return r && r.pos!=null && r.pts!=null;});
+      html += '<option value="'+n+'">Jornada '+n+' · '+vueltaOf(n)+'ª vuelta'+(isDouble(n)?' · x2':'')+(played?' · ✓':'')+'</option>';
+    }
+    sel.innerHTML = html;
+    sel.value = String(selectedJornada || maxPlayedJornada()+1 || 1);
+    buildJornadaForm();
+  }
+
+  function buildJornadaForm(){
+    var n = parseInt(document.getElementById("jornada-select").value,10);
+    var jd = jornadasState[String(n)] || {results:{}};
+    var rows = '<div class="admin-grid head"><div>Equipo</div><div>Pos.</div><div>Puntos</div></div>';
+    rows += TEAMS.map(function(t){
+      var r = jd.results[t.slug] || {};
+      return '<div class="admin-grid">' +
+        '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
+        '<input type="number" min="1" max="8" id="pos-'+t.slug+'" value="'+(r.pos!=null?r.pos:"")+'" />' +
+        '<input type="number" id="pts-'+t.slug+'" value="'+(r.pts!=null?r.pts:"")+'" />' +
+        '</div>';
+    }).join("");
+    document.getElementById("jornada-form").innerHTML = rows;
+  }
+
+  function buildPayForm(){
+    document.getElementById("pay-form").innerHTML = TEAMS.map(function(t){
+      var p = paymentsState[t.slug] || {};
+      return '<div class="pay-grid">' +
+        '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
+        '<div class="pay-cell">' +
+          '<input type="number" min="0" step="0.5" id="pay1-'+t.slug+'" value="'+(p.v1!=null?p.v1:0)+'" />' +
+          '<label class="conf-label"><input type="checkbox" id="conf1-'+t.slug+'" '+(p.v1Confirmed?"checked":"")+' /> confirmado</label>' +
+        '</div>' +
+        '<div class="pay-cell">' +
+          '<input type="number" min="0" step="0.5" id="pay2-'+t.slug+'" value="'+(p.v2!=null?p.v2:0)+'" />' +
+          '<label class="conf-label"><input type="checkbox" id="conf2-'+t.slug+'" '+(p.v2Confirmed?"checked":"")+' /> confirmado</label>' +
+        '</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  function flashSaved(id){
+    var el = document.getElementById(id);
+    el.classList.add("show");
+    setTimeout(function(){ el.classList.remove("show"); }, 1800);
+  }
+
+  async function saveJornada(){
+    var n = parseInt(document.getElementById("jornada-select").value,10);
+    var results = {};
+    TEAMS.forEach(function(t){
+      var pos = document.getElementById("pos-"+t.slug).value;
+      var pts = document.getElementById("pts-"+t.slug).value;
+      results[t.slug] = {
+        pos: pos==="" ? null : parseInt(pos,10),
+        pts: pts==="" ? null : parseFloat(pts)
+      };
+    });
+    var doc = {vuelta:vueltaOf(n), isDouble:isDouble(n), results:results};
+    if(db){
+      try{ await db.doc("jornadas/"+n).set(doc); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); }
+    } else {
+      jornadasState[String(n)] = doc;
+      renderAllLive();
+    }
+    flashSaved("save-jornada-msg");
+  }
+
+  async function savePagos(){
+    var writes = [];
+    var nowIso = new Date().toISOString();
+    TEAMS.forEach(function(t){
+      var v1 = parseFloat(document.getElementById("pay1-"+t.slug).value) || 0;
+      var v2 = parseFloat(document.getElementById("pay2-"+t.slug).value) || 0;
+      var conf1 = document.getElementById("conf1-"+t.slug).checked;
+      var conf2 = document.getElementById("conf2-"+t.slug).checked;
+      var prev = paymentsState[t.slug] || {};
+      var doc = {
+        v1:v1, v2:v2,
+        v1Confirmed: conf1,
+        v1ConfirmedAt: conf1 ? (prev.v1ConfirmedAt || nowIso) : null,
+        v2Confirmed: conf2,
+        v2ConfirmedAt: conf2 ? (prev.v2ConfirmedAt || nowIso) : null
+      };
+      if(db){
+        writes.push(db.doc("payments/"+t.slug).set(doc));
+      } else {
+        paymentsState[t.slug] = doc;
+      }
+    });
+    if(db){ try{ await Promise.all(writes); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); } }
+    else { renderAllLive(); }
+    flashSaved("save-pagos-msg");
+  }
+
+  async function importHistorico(){
+    if(!db){
+      alert("Todavía no hay conexión con Firebase. Completa la configuración en index.html (ver README) y vuelve a intentarlo.");
+      return;
+    }
+    try{
+      var writes = [];
+      Object.keys(FALLBACK_JORNADAS).forEach(function(n){
+        writes.push(db.doc("jornadas/"+n).set(FALLBACK_JORNADAS[n]));
+      });
+      Object.keys(FALLBACK_PAYMENTS).forEach(function(slug){
+        writes.push(db.doc("payments/"+slug).set(FALLBACK_PAYMENTS[slug]));
+      });
+      await Promise.all(writes);
+      flashSaved("import-msg");
+    }catch(e){
+      console.error(e);
+      alert("Hubo un error importando. Revisa la consola.");
+    }
+  }
+
+  function tryUnlock(){
+    var val = document.getElementById("pin-input").value;
+    if(val === ADMIN_PIN){
+      adminUnlocked = true;
+      try{ localStorage.setItem("comunio-admin-ok","1"); }catch(e){}
+      document.getElementById("admin-locked").style.display = "none";
+      document.getElementById("admin-unlocked").style.display = "block";
+      document.getElementById("pin-error").style.display = "none";
+      populateJornadaSelect();
+      buildPayForm();
+    } else {
+      document.getElementById("pin-error").style.display = "block";
+    }
+  }
+
+  // ---------- tabs ----------
+  function activateTab(tab){
+    Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-tab")===tab);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".tabpanel"), function(p){
+      p.classList.toggle("active", p.id === "tab-"+tab);
+    });
+  }
+
+  // ---------- master render ----------
+  function renderAllLive(){
+    renderHeader();
+    renderResumen();
+    renderJornadaGrids();
+    renderJornadaDetail();
+  }
+
+  function init(){
+    Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
+      btn.addEventListener("click", function(){ activateTab(btn.getAttribute("data-tab")); });
+    });
+
+    document.getElementById("pin-submit").addEventListener("click", tryUnlock);
+    document.getElementById("pin-input").addEventListener("keydown", function(e){ if(e.key==="Enter") tryUnlock(); });
+    document.getElementById("admin-logout").addEventListener("click", function(){
+      adminUnlocked = false;
+      try{ localStorage.removeItem("comunio-admin-ok"); }catch(e){}
+      document.getElementById("admin-locked").style.display = "block";
+      document.getElementById("admin-unlocked").style.display = "none";
+      document.getElementById("pin-input").value = "";
+    });
+    document.getElementById("jornada-select").addEventListener("change", buildJornadaForm);
+    document.getElementById("save-jornada").addEventListener("click", saveJornada);
+    document.getElementById("save-pagos").addEventListener("click", savePagos);
+    document.getElementById("btn-import-historico").addEventListener("click", importHistorico);
+    document.getElementById("btn-copy-liq").addEventListener("click", copyLiquidacion);
+    if(navigator.share){
+      var shareBtn = document.getElementById("btn-share-liq");
+      shareBtn.style.display = "inline-block";
+      shareBtn.addEventListener("click", shareLiquidacion);
+    }
+
+    renderReglas();
+
+    var remembered = false;
+    try{ remembered = localStorage.getItem("comunio-admin-ok") === "1"; }catch(e){}
+    if(remembered){
+      adminUnlocked = true;
+      document.getElementById("admin-locked").style.display = "none";
+      document.getElementById("admin-unlocked").style.display = "block";
+    }
+
+    renderAllLive();
+
+    // ---------- Firebase wiring (carga dinámica, con red de seguridad) ----------
+    (async function(){
+      var fsDb = null;
+      var fbApp, fbFs;
+      try{
+        if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("TU_") !== 0){
+          fbApp = await import(FIREBASE_APP_URL);
+          fbFs = await import(FIREBASE_FS_URL);
+          var app = fbApp.initializeApp(FIREBASE_CONFIG);
+          fsDb = fbFs.getFirestore(app);
+        }
+      }catch(e){ console.error("Error cargando/inicializando Firebase", e); fsDb = null; }
+
+      if(!fsDb){
+        usingFallback = true;
+        jornadasState = FALLBACK_JORNADAS;
+        paymentsState = FALLBACK_PAYMENTS;
+        renderAllLive();
+        if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); }
+        return;
+      }
+
+      // adaptador mínimo para no reescribir toda la lógica de arriba
+      db = {
+        collection: function(name){
+          return {
+            onSnapshot: function(next, error){
+              return fbFs.onSnapshot(fbFs.collection(fsDb, name), function(snap){
+                next({docs: snap.docs.map(function(d){ return {id:d.id, data:function(){ return d.data(); }}; })});
+              }, error);
+            }
+          };
+        },
+        doc: function(path){
+          var parts = path.split("/");
+          var ref = fbFs.doc(fsDb, parts[0], parts[1]);
+          return { set: function(data){ return fbFs.setDoc(ref, data); } };
+        }
+      };
+
+      db.collection("jornadas").onSnapshot(function(snap){
+        var next = {};
+        snap.docs.forEach(function(d){ next[d.id] = d.data(); });
+        jornadasState = next;
+        renderAllLive();
+      }, function(err){ console.error("jornadas snapshot error", err); });
+
+      db.collection("payments").onSnapshot(function(snap){
+        var next = {};
+        snap.docs.forEach(function(d){ next[d.id] = d.data(); });
+        paymentsState = next;
+        renderAllLive();
+      }, function(err){ console.error("payments snapshot error", err); });
+
+      if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); }
+    })();
+  }
+
+  function boot(){
+    if(document.readyState === "loading"){
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
