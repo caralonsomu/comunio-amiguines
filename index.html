@@ -147,13 +147,14 @@
   tr[data-rank="1"] .rank-badge{background:var(--gold); color:#2a1c02;}
 
   /* ---- bar chart ---- */
-  .barchart{display:flex; flex-direction:column; gap:10px;}
-  .barrow{display:grid; grid-template-columns:150px 1fr 56px; align-items:center; gap:10px;}
-  .barrow .name{font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .barchart{display:flex; flex-direction:column; gap:14px;}
+  .barrow{display:flex; flex-direction:column; gap:6px;}
+  .barrow .toprow{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+  .barrow .name{font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; min-width:0;}
+  .barrow .name span.full{overflow-wrap:break-word; word-break:break-word;}
   .bartrack{background:var(--surface-2); border-radius:6px; height:16px; position:relative; overflow:hidden;}
   .barfill{height:100%; border-radius:6px 2px 2px 6px;}
-  .barrow .val{font-variant-numeric:tabular-nums; font-weight:800; text-align:right; font-size:13px;}
-  @media (max-width:640px){ .barrow{grid-template-columns:96px 1fr 44px;} .barrow .name span.full{display:none;} }
+  .barrow .val{font-variant-numeric:tabular-nums; font-weight:800; text-align:right; font-size:13px; flex:none; white-space:nowrap;}
 
   /* ---- jornada chips ---- */
   .jgrid{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;}
@@ -206,10 +207,6 @@
   .conf-label{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); font-weight:700; cursor:pointer;}
   .conf-label input{width:auto;}
   @media (max-width:640px){ .pay-grid{grid-template-columns:1fr 1fr;} .pay-grid.head{display:none;} .pay-grid > .team-cell{grid-column:1 / -1;} }
-  .liq-textarea{
-    width:100%; font-family:"Karla", monospace; font-size:13px; line-height:1.5; padding:12px;
-    border-radius:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); resize:vertical;
-  }
   .save-row{display:flex; gap:10px; align-items:center; margin-top:14px; flex-wrap:wrap;}
   .save-msg{font-size:13px; color:var(--good); font-weight:700; opacity:0; transition:opacity .3s;}
   .save-msg.show{opacity:1;}
@@ -254,13 +251,14 @@
 
       <div class="card">
         <h2>Cuentas de cada equipo</h2>
-        <div class="sub">Lo que debe cada equipo según su clasificación semanal, lo que ha ingresado por Bizum y lo que queda pendiente. <span style="color:var(--gold);">*</span> Der Poso gestiona el pozo de Comunio Premium, así que a su cuenta ya se le restan 36€.</div>
+        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones + cuota + extra de fin de temporada) y si ya se ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong> — son cosas distintas, ver la tabla de abajo. <span style="color:var(--gold);">*</span> Der Poso gestiona el pozo de Comunio Premium, así que a su 1ª vuelta ya se le restan 36€.</div>
         <div class="table-scroll">
           <table class="data" id="tbl-cuentas">
             <thead>
               <tr>
                 <th>#</th><th>Equipo</th><th class="num">Puntos</th>
-                <th class="num">Debe</th><th class="num">Ingresado</th><th>Confirmado</th><th class="num">Pendiente</th>
+                <th class="num">Debe 1ª vuelta</th><th class="num">Debe 2ª vuelta</th><th class="num">Extra final</th>
+                <th class="num">Debe total</th><th>Liquidado</th><th class="num">Pendiente</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -269,15 +267,20 @@
       </div>
 
       <div class="card">
-        <h2>Compartir liquidación</h2>
-        <div class="sub">Resumen listo para pegar en el grupo de WhatsApp, con los datos de ahora mismo</div>
-        <textarea class="liq-textarea" id="liq-preview" rows="12" readonly></textarea>
-        <div class="save-row">
-          <button class="btn" id="btn-copy-liq">📋 Copiar</button>
-          <button class="btn ghost" id="btn-share-liq" style="display:none;">Compartir</button>
-          <span class="save-msg" id="liq-copied-msg">Copiado ✓</span>
+        <h2>Bizum — presupuesto extra del juego</h2>
+        <div class="sub">Esto es dinero que cada uno mete por su cuenta para tener más presupuesto dentro de Biwenger (ver pestaña Reglas). <strong>No tiene nada que ver con lo que se debe por la clasificación</strong> — aquí solo se lleva la cuenta de quién ha metido cuánto.</div>
+        <div class="table-scroll">
+          <table class="data" id="tbl-bizum">
+            <thead>
+              <tr>
+                <th>Equipo</th><th class="num">Bizum 1ª vuelta</th><th class="num">Bizum 2ª vuelta</th><th class="num">Total</th><th>Confirmado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
+
     </section>
 
     <!-- JORNADAS -->
@@ -298,32 +301,57 @@
     <!-- REGLAS -->
     <section id="tab-reglas" class="tabpanel">
       <div class="card prose">
-        <h2 style="margin-bottom:14px;">Reglas de pago</h2>
+        <h2 style="margin-bottom:4px;">Reglas de pago</h2>
+        <div class="sub" style="margin-bottom:14px;">Según las normas oficiales de la temporada 2026/27 acordadas por el grupo.</div>
+
+        <h3>Cuota de entrada</h3>
+        <p>Al empezar la temporada, cada equipo aporta <strong>5€ de cuota inicial</strong>, que se suma a lo que deba por su clasificación en la liquidación de la 1ª vuelta.</p>
 
         <h3>Lo que se paga cada jornada</h3>
         <p>Cada jornada, los 8 equipos se ordenan según su posición en esa semana (puntos de Comunio). Cuanto peor la posición, más se paga, según esta tabla:</p>
         <div class="table-scroll">
           <table class="data mini-table" id="tbl-cost-rules">
             <thead><tr><th>Posición</th><th class="num">1º</th><th class="num">2º</th><th class="num">3º</th><th class="num">4º</th><th class="num">5º</th><th class="num">6º</th><th class="num">7º</th><th class="num">8º</th></tr></thead>
-            <tbody><tr><td>€ a pagar</td><td class="num">0€</td><td class="num">1€</td><td class="num">2€</td><td class="num">3€</td><td class="num">4€</td><td class="num">5€</td><td class="num">7€</td><td class="num">8€</td></tr></tbody>
+            <tbody></tbody>
           </table>
         </div>
+        <p style="font-size:13px; color:var(--muted);">* Las normas se redactaron para 7 jugadores; al añadirse un 8º equipo más tarde, su coste (3,50€) sigue el mismo patrón de +0,50€ por puesto.</p>
 
         <h3>Penalización por baja puntuación</h3>
-        <p>Además, si un equipo no llega a <strong>40 puntos</strong> en una jornada de la 1ª vuelta (o a <strong>35 puntos</strong> en la 2ª vuelta), paga <strong>0,50€</strong> extra esa semana, independientemente de su posición.</p>
+        <p>Además, si un equipo no llega a <strong>40 puntos</strong> en una jornada (igual en la 1ª y en la 2ª vuelta), paga <strong>0,50€</strong> extra esa semana, independientemente de su posición.</p>
 
         <h3>Jornadas dobles</h3>
-        <p>Coincidiendo con el Clásico y el Derbi sevillano, estas jornadas cuentan <strong>doble</strong>: tanto el coste por posición como la penalización se multiplican por dos.</p>
+        <p>Coincidiendo con el Clásico y el Derbi sevillano, estas jornadas cuentan doble: se duplica <strong>únicamente el coste por posición</strong>, nunca la penalización por baja puntuación.</p>
         <div class="fixture-list" id="fixture-list"></div>
 
-        <h3>Cuota inicial y pozo de Comunio Premium</h3>
-        <p>Al liquidar la 1ª vuelta, cada equipo suma <strong>5€ de cuota inicial</strong> a lo que deba por posiciones y penalizaciones. Además, <strong>Der Poso</strong> adelantó el pozo de <strong>36€</strong> de la suscripción a Comunio Premium, así que ese importe se le descuenta a él de su liquidación de la 1ª vuelta.</p>
+        <h3>Pozo de Comunio Premium</h3>
+        <p><strong>Der Poso</strong> adelantó el pozo de <strong>36€</strong> de la suscripción a Comunio Premium, así que ese importe se le descuenta a él de su liquidación de la 1ª vuelta.</p>
 
-        <h3>Fechas de liquidación</h3>
-        <p>La 1ª vuelta se liquida el <strong id="fecha-v1">10 de enero de 2027</strong> y la 2ª vuelta el <strong id="fecha-v2">30 de mayo de 2027</strong>. Ese día se hace la cuenta de todo lo acumulado y cada equipo paga (o cobra) la diferencia.</p>
+        <h3>Cuándo se liquida la deuda</h3>
+        <p>La deuda de la clasificación se salda <strong>solo dos veces en toda la temporada</strong>: al terminar la 1ª vuelta (jornada 19) y al terminar la 2ª vuelta (jornada 38). La 1ª vuelta se liquida sobre el <strong id="fecha-v1">10 de enero de 2027</strong> y la 2ª sobre el <strong id="fecha-v2">30 de mayo de 2027</strong>. Ese día se hace la cuenta de todo lo acumulado en esa vuelta y cada equipo paga por Bizum a quien lleve el bote. El administrador marca en la pestaña <strong>Admin</strong> qué equipos ya han liquidado cada vuelta, para que en Resumen se vea siempre quién tiene pendiente y quién está al día.</p>
 
-        <h3>Cómo se paga</h3>
-        <p>Los pagos se hacen por Bizum a quien lleve el bote esa vuelta. El administrador registra en la pestaña <strong>Admin</strong> lo que cada equipo ha ingresado, para que aquí se vea siempre quién tiene pendiente y quién está al día.</p>
+        <h3>Extra de fin de temporada</h3>
+        <p>Al acabar la jornada 38 se calcula un extra adicional, solo para los equipos que terminen <strong>4º, 5º, 6º o 7º</strong> (los tres primeros y el último quedan exentos), en función de su diferencia de puntos con el campeón:</p>
+        <div class="table-scroll">
+          <table class="data mini-table">
+            <thead><tr><th>Concepto</th><th>Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Por cada punto de diferencia con el campeón</td><td>0,10€</td></tr>
+              <tr><td>Por cada bloque completo de 50 puntos de diferencia (se suma al anterior)</td><td>5€</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:13px; color:var(--muted);">Ejemplos de las normas: 85 puntos de diferencia → 13,50€ · 149 puntos → 24,90€ · 150 puntos → 30,00€. En Resumen se muestra ya calculado desde ahora como <em>proyección</em> (con la clasificación actual), y pasa a ser deuda real en cuanto se juega la jornada 38.</p>
+
+        <h3>Premios de fin de temporada</h3>
+        <p>El campeón se lleva una camiseta pagada con el pozo del grupo, y lo que sobre del pozo financia un viaje conjunto. El resto de posiciones en el podio dan derecho a elegir habitación/orden en el viaje, pero no tienen valor económico.</p>
+
+        <h3>Los Bizum son otra cosa: presupuesto del juego, no deuda</h3>
+        <p>Aparte de todo lo anterior, cualquiera puede meter dinero real por Bizum para <strong>comprar presupuesto ficticio dentro de Biwenger</strong> y poder fichar más jugadores. El cambio no es siempre el mismo: normalmente 1€ = 1M, pero sube a 1,50€ = 1M si se hace en las 24h antes de una jornada estando en números rojos, y a 2€ = 1M (la primera vez) o 3€ = 1M (la segunda, y ya no se puede una tercera) si se hace a mitad de jornada.</p>
+        <p><strong>Esto no tiene nada que ver con la deuda de la clasificación</strong> — son dos cuentas totalmente independientes y no se compensan entre sí: meter un Bizum de presupuesto no reduce lo que un equipo deba por su clasificación, ni al revés. En Resumen se muestran en dos tablas separadas por eso mismo.</p>
+
+        <h3>Otras normas del juego (informativo)</h3>
+        <p>El reglamento completo incluye también cláusulas de rescisión y normas de traspasos entre jugadores, y un abono extraordinario de dinero ficticio al acabar la jornada 19. Todo esto afecta solo al juego dentro de Biwenger, no implica dinero real, y por eso no se refleja en las cuentas de esta web.</p>
       </div>
     </section>
 
@@ -361,8 +389,18 @@
         </div>
 
         <div class="card">
-          <h2>Ingresos por Bizum</h2>
-          <div class="sub">Cuánto ha ingresado cada equipo en cada vuelta</div>
+          <h2>Liquidación de la clasificación</h2>
+          <div class="sub">Marca cuándo se ha pagado (liquidado) la deuda de cada equipo, al cerrar la 1ª vuelta y al cerrar la 2ª. Esto es independiente de los Bizum de presupuesto del juego (siguiente tarjeta).</div>
+          <div id="settle-form"></div>
+          <div class="save-row">
+            <button class="btn" id="save-settle">Guardar liquidación</button>
+            <span class="save-msg" id="save-settle-msg">Guardado ✓</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Ingresos por Bizum (presupuesto del juego)</h2>
+          <div class="sub">Cuánto ha metido cada equipo por Bizum para tener más presupuesto en Biwenger — esto NO es la deuda de la clasificación, que se liquida en la tarjeta de arriba.</div>
           <div class="pay-grid head"><div>Equipo</div><div>1ª vuelta</div><div>2ª vuelta</div></div>
           <div id="pay-form"></div>
           <div class="save-row">
@@ -408,31 +446,94 @@ const FIREBASE_CONFIG = {
     {slug:"samaritanas", name:"SAMARITANAS DEL AMOR C.F",     color:"var(--c3)"},
     {slug:"derposo",     name:"DER POSO",                     color:"var(--c4)"},
     {slug:"shiquinino",  name:"SHIQUININO FC",                color:"var(--c5)"},
-    {slug:"carlosklop",  name:"CARLOS KLOP",                  color:"var(--c6)"},
+    {slug:"carlosklop",  name:"CARLOS KLOPP",                 color:"var(--c6)"},
     {slug:"arroz",       name:"ARROZ DEL SENYORET F.C",       color:"var(--c7)"},
     {slug:"maravilla",   name:"MARAVILLA F.C",                color:"var(--c8)"}
   ];
   var TOTAL_JORNADAS = 38;
   var V1_LAST = 19; // jornadas 1-19 = 1a vuelta, 20-38 = 2a vuelta
-  var COST_TABLE = [0,1,2,3,4,5,7,8]; // index = posicion-1
-  var THRESHOLD = {1:40, 2:35};
+  // Tabla de coste por posición y umbral de penalización según las normas
+  // oficiales 2026/27 (NORMAS_COMUNIO_2026_ACTUALIZADAS.pdf). Las normas se
+  // redactaron para 7 jugadores; el 8º equipo se añadió después y su coste
+  // (3,50€) sigue el mismo patrón lineal de +0,50€ por puesto (confirmado).
+  var COST_TABLE = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]; // index = posicion-1
+  var THRESHOLD_PTS = 40; // igual en las dos vueltas (ya no hay distinción 40/35)
   var PENALTY = 0.5;
   var CUOTA_INICIAL = 5;
   var POZO_PREMIUM = 36;
-  var DOUBLES = {
-    10:{fixture:"FC Barcelona – Real Madrid", vuelta:1},
-    13:{fixture:"Sevilla FC – Real Betis",     vuelta:1},
-    23:{fixture:"Real Betis – Sevilla FC",     vuelta:2},
-    35:{fixture:"Real Madrid – FC Barcelona",  vuelta:2}
-  };
+  // Extra de fin de temporada (normas, apdo. 7.5 y 7.6): solo pagan los
+  // equipos 4º-7º (1º-3º y 8º quedan exentos), en función de su diferencia de
+  // puntos con el campeón, y solo se hace firme al acabar la jornada 38.
+  var EXTRA_PER_POINT = 0.10;
+  var EXTRA_PER_BLOCK = 5;
+  var EXTRA_BLOCK_SIZE = 50;
+  // Jornadas dobles (Clásico y Derbi sevillano): se duplica EXCLUSIVAMENTE el
+  // coste por posición, nunca la penalización por baja puntuación.
+  var DOUBLES = { 10:1, 13:1, 23:2, 35:2 }; // jornada -> vuelta en la que cae
   var DEADLINE_V1 = new Date("2027-01-10T00:00:00");
   var DEADLINE_V2 = new Date("2027-05-30T00:00:00");
   var ADMIN_PIN = "2627"; // cámbialo si quieres
 
+  // Calendario real de LaLiga 2026/27, jornada a jornada (10 partidos por
+  // jornada). Se usa en la pestaña "Jornadas" para mostrar los enfrentamientos
+  // reales de fútbol de esa semana, y para etiquetar las jornadas dobles.
+  var LALIGA_FIXTURES = {
+    1: ["Deportivo Alavés–Getafe CF", "Atlético de Madrid–Málaga CF", "RC Celta–CA Osasuna", "RC Deportivo–Elche CF", "RCD Espanyol–Levante UD", "FC Barcelona–Athletic Club", "Racing de Santander–Villarreal CF", "Real Madrid–Real Sociedad", "Sevilla FC–Rayo Vallecano", "Valencia CF–Real Betis"],
+    2: ["Athletic Club–Sevilla FC", "Atlético de Madrid–Villarreal CF", "Real Betis–Real Sociedad", "Elche CF–FC Barcelona", "RCD Espanyol–Real Madrid", "Getafe CF–Racing de Santander", "Málaga CF–RC Deportivo", "CA Osasuna–Levante UD", "Rayo Vallecano–Deportivo Alavés", "Valencia CF–RC Celta"],
+    3: ["Deportivo Alavés–Villarreal CF", "RC Celta–Athletic Club", "RC Deportivo–Valencia CF", "FC Barcelona–Rayo Vallecano", "Levante UD–Real Betis", "CA Osasuna–Getafe CF", "Racing de Santander–Elche CF", "Real Madrid–Málaga CF", "Real Sociedad–RCD Espanyol", "Sevilla FC–Atlético de Madrid"],
+    4: ["Deportivo Alavés–CA Osasuna", "Athletic Club–Atlético de Madrid", "Real Betis–Real Madrid", "Elche CF–Real Sociedad", "RCD Espanyol–Sevilla FC", "Getafe CF–RC Celta", "Málaga CF–Levante UD", "Rayo Vallecano–Racing de Santander", "Valencia CF–FC Barcelona", "Villarreal CF–RC Deportivo"],
+    5: ["Athletic Club–Elche CF", "RC Celta–Málaga CF", "Getafe CF–RC Deportivo", "Levante UD–FC Barcelona", "CA Osasuna–RCD Espanyol", "Racing de Santander–Deportivo Alavés", "Real Madrid–Rayo Vallecano", "Real Sociedad–Atlético de Madrid", "Sevilla FC–Valencia CF", "Villarreal CF–Real Betis"],
+    6: ["Deportivo Alavés–Valencia CF", "Atlético de Madrid–CA Osasuna", "Real Betis–Getafe CF", "RC Deportivo–Sevilla FC", "Elche CF–Real Madrid", "FC Barcelona–Racing de Santander", "Levante UD–Athletic Club", "Málaga CF–Villarreal CF", "Rayo Vallecano–RCD Espanyol", "Real Sociedad–RC Celta"],
+    7: ["Athletic Club–Deportivo Alavés", "Atlético de Madrid–Real Madrid", "RC Celta–Racing de Santander", "RC Deportivo–Real Betis", "RCD Espanyol–Elche CF", "Getafe CF–Málaga CF", "CA Osasuna–Rayo Vallecano", "Sevilla FC–FC Barcelona", "Valencia CF–Real Sociedad", "Villarreal CF–Levante UD"],
+    8: ["Deportivo Alavés–Atlético de Madrid", "Real Betis–CA Osasuna", "Elche CF–RC Celta", "FC Barcelona–Getafe CF", "Levante UD–Sevilla FC", "Málaga CF–RCD Espanyol", "Racing de Santander–Valencia CF", "Rayo Vallecano–Athletic Club", "Real Madrid–Villarreal CF", "Real Sociedad–RC Deportivo"],
+    9: ["Real Betis–FC Barcelona", "RC Celta–Deportivo Alavés", "RC Deportivo–Levante UD", "RCD Espanyol–Atlético de Madrid", "Getafe CF–Rayo Vallecano", "Málaga CF–Real Sociedad", "CA Osasuna–Racing de Santander", "Real Madrid–Sevilla FC", "Valencia CF–Athletic Club", "Villarreal CF–Elche CF"],
+    10: ["Deportivo Alavés–Málaga CF", "Athletic Club–Getafe CF", "Atlético de Madrid–RC Deportivo", "RC Celta–Real Betis", "FC Barcelona–Real Madrid", "Racing de Santander–RCD Espanyol", "Rayo Vallecano–Elche CF", "Real Sociedad–Levante UD", "Sevilla FC–CA Osasuna", "Valencia CF–Villarreal CF"],
+    11: ["Athletic Club–Real Sociedad", "Real Betis–Málaga CF", "RC Deportivo–CA Osasuna", "Elche CF–Valencia CF", "FC Barcelona–Deportivo Alavés", "Getafe CF–Sevilla FC", "Levante UD–Atlético de Madrid", "Racing de Santander–Real Madrid", "Rayo Vallecano–RC Celta", "Villarreal CF–RCD Espanyol"],
+    12: ["Atlético de Madrid–FC Barcelona", "RC Celta–Levante UD", "Elche CF–Real Betis", "RCD Espanyol–RC Deportivo", "Málaga CF–Racing de Santander", "CA Osasuna–Athletic Club", "Real Sociedad–Rayo Vallecano", "Sevilla FC–Deportivo Alavés", "Valencia CF–Real Madrid", "Villarreal CF–Getafe CF"],
+    13: ["Deportivo Alavés–RC Deportivo", "Athletic Club–RCD Espanyol", "FC Barcelona–Villarreal CF", "Getafe CF–Atlético de Madrid", "Levante UD–Elche CF", "CA Osasuna–Málaga CF", "Racing de Santander–Real Sociedad", "Rayo Vallecano–Valencia CF", "Real Madrid–RC Celta", "Sevilla FC–Real Betis"],
+    14: ["Real Betis–Rayo Vallecano", "RC Celta–Villarreal CF", "RC Deportivo–FC Barcelona", "Elche CF–Atlético de Madrid", "RCD Espanyol–Getafe CF", "Levante UD–Racing de Santander", "Málaga CF–Athletic Club", "Real Madrid–Deportivo Alavés", "Real Sociedad–Sevilla FC", "Valencia CF–CA Osasuna"],
+    15: ["Deportivo Alavés–RCD Espanyol", "Athletic Club–Real Madrid", "Atlético de Madrid–Real Betis", "FC Barcelona–RC Celta", "Getafe CF–Valencia CF", "CA Osasuna–Elche CF", "Racing de Santander–RC Deportivo", "Rayo Vallecano–Levante UD", "Sevilla FC–Málaga CF", "Villarreal CF–Real Sociedad"],
+    16: ["Atlético de Madrid–Valencia CF", "Real Betis–Racing de Santander", "RC Deportivo–Athletic Club", "Elche CF–Sevilla FC", "RCD Espanyol–RC Celta", "Levante UD–Deportivo Alavés", "Málaga CF–FC Barcelona", "Real Madrid–CA Osasuna", "Real Sociedad–Getafe CF", "Villarreal CF–Rayo Vallecano"],
+    17: ["Deportivo Alavés–Elche CF", "Athletic Club–Real Betis", "RC Celta–Atlético de Madrid", "RC Deportivo–Real Madrid", "FC Barcelona–Real Sociedad", "Getafe CF–Levante UD", "CA Osasuna–Villarreal CF", "Rayo Vallecano–Málaga CF", "Sevilla FC–Racing de Santander", "Valencia CF–RCD Espanyol"],
+    18: ["Real Betis–Deportivo Alavés", "RC Celta–RC Deportivo", "RCD Espanyol–FC Barcelona", "Levante UD–Valencia CF", "Málaga CF–Elche CF", "Racing de Santander–Athletic Club", "Rayo Vallecano–Atlético de Madrid", "Real Madrid–Getafe CF", "Real Sociedad–CA Osasuna", "Villarreal CF–Sevilla FC"],
+    19: ["Deportivo Alavés–Real Sociedad", "Athletic Club–Villarreal CF", "Atlético de Madrid–Racing de Santander", "RC Deportivo–Rayo Vallecano", "Elche CF–Getafe CF", "RCD Espanyol–Real Betis", "CA Osasuna–FC Barcelona", "Real Madrid–Levante UD", "Sevilla FC–RC Celta", "Valencia CF–Málaga CF"],
+    20: ["Atlético de Madrid–Real Sociedad", "Real Betis–RC Deportivo", "RC Celta–Valencia CF", "FC Barcelona–Elche CF", "Getafe CF–Athletic Club", "Levante UD–RCD Espanyol", "Málaga CF–Real Madrid", "Racing de Santander–CA Osasuna", "Rayo Vallecano–Sevilla FC", "Villarreal CF–Deportivo Alavés"],
+    21: ["Deportivo Alavés–FC Barcelona", "Athletic Club–Levante UD", "RC Deportivo–Atlético de Madrid", "Elche CF–Rayo Vallecano", "RCD Espanyol–Villarreal CF", "Getafe CF–CA Osasuna", "Racing de Santander–RC Celta", "Real Madrid–Real Betis", "Real Sociedad–Málaga CF", "Valencia CF–Sevilla FC"],
+    22: ["Atlético de Madrid–RCD Espanyol", "Real Betis–Elche CF", "RC Celta–Getafe CF", "FC Barcelona–Valencia CF", "Levante UD–Real Sociedad", "Málaga CF–Deportivo Alavés", "CA Osasuna–RC Deportivo", "Rayo Vallecano–Real Madrid", "Sevilla FC–Athletic Club", "Villarreal CF–Racing de Santander"],
+    23: ["Deportivo Alavés–RC Celta", "Athletic Club–CA Osasuna", "Real Betis–Sevilla FC", "RC Deportivo–Málaga CF", "Elche CF–Levante UD", "RCD Espanyol–Rayo Vallecano", "FC Barcelona–Atlético de Madrid", "Getafe CF–Villarreal CF", "Real Sociedad–Real Madrid", "Valencia CF–Racing de Santander"],
+    24: ["RC Celta–Rayo Vallecano", "Elche CF–RC Deportivo", "Levante UD–Málaga CF", "CA Osasuna–Atlético de Madrid", "Racing de Santander–Getafe CF", "Real Madrid–Athletic Club", "Real Sociedad–Real Betis", "Sevilla FC–RCD Espanyol", "Valencia CF–Deportivo Alavés", "Villarreal CF–FC Barcelona"],
+    25: ["Deportivo Alavés–Racing de Santander", "Athletic Club–RC Celta", "Atlético de Madrid–Elche CF", "RC Deportivo–Real Sociedad", "RCD Espanyol–CA Osasuna", "FC Barcelona–Levante UD", "Málaga CF–Real Betis", "Rayo Vallecano–Getafe CF", "Sevilla FC–Real Madrid", "Villarreal CF–Valencia CF"],
+    26: ["Athletic Club–FC Barcelona", "Real Betis–Villarreal CF", "RC Celta–RCD Espanyol", "Getafe CF–Deportivo Alavés", "Levante UD–RC Deportivo", "Málaga CF–Atlético de Madrid", "CA Osasuna–Sevilla FC", "Racing de Santander–Rayo Vallecano", "Real Madrid–Valencia CF", "Real Sociedad–Elche CF"],
+    27: ["Deportivo Alavés–Athletic Club", "Atlético de Madrid–RC Celta", "RC Deportivo–Getafe CF", "Elche CF–Málaga CF", "RCD Espanyol–Racing de Santander", "FC Barcelona–Real Betis", "Rayo Vallecano–CA Osasuna", "Sevilla FC–Real Sociedad", "Valencia CF–Levante UD", "Villarreal CF–Real Madrid"],
+    28: ["Deportivo Alavés–Sevilla FC", "Athletic Club–Valencia CF", "FC Barcelona–RC Deportivo", "Real Betis–Levante UD", "Elche CF–Villarreal CF", "Getafe CF–Real Sociedad", "Málaga CF–Rayo Vallecano", "Racing de Santander–Atlético de Madrid", "Real Madrid–RCD Espanyol", "CA Osasuna–RC Celta"],
+    29: ["Atlético de Madrid–Getafe CF", "Villarreal CF–Málaga CF", "RCD Espanyol–Athletic Club", "Real Sociedad–Deportivo Alavés", "Sevilla FC–Elche CF", "RC Celta–Real Madrid", "Racing de Santander–Real Betis", "Levante UD–CA Osasuna", "Valencia CF–RC Deportivo", "Rayo Vallecano–FC Barcelona"],
+    30: ["FC Barcelona–Sevilla FC", "Real Madrid–Atlético de Madrid", "RC Deportivo–Villarreal CF", "Athletic Club–Racing de Santander", "Real Sociedad–Valencia CF", "Real Betis–RC Celta", "Levante UD–Rayo Vallecano", "Málaga CF–CA Osasuna", "Getafe CF–RCD Espanyol", "Elche CF–Deportivo Alavés"],
+    31: ["Racing de Santander–FC Barcelona", "Atlético de Madrid–Levante UD", "Villarreal CF–Athletic Club", "Rayo Vallecano–Real Sociedad", "Sevilla FC–RC Deportivo", "CA Osasuna–Real Madrid", "RC Celta–Elche CF", "Deportivo Alavés–Real Betis", "Valencia CF–Getafe CF", "RCD Espanyol–Málaga CF"],
+    32: ["FC Barcelona–RCD Espanyol", "Atlético de Madrid–Sevilla FC", "Levante UD–Villarreal CF", "Real Betis–Athletic Club", "Real Sociedad–Racing de Santander", "RC Deportivo–RC Celta", "Deportivo Alavés–Rayo Vallecano", "Elche CF–CA Osasuna", "Getafe CF–Real Madrid", "Málaga CF–Valencia CF"],
+    33: ["RC Celta–FC Barcelona", "Villarreal CF–Atlético de Madrid", "Athletic Club–RC Deportivo", "RCD Espanyol–Real Sociedad", "Sevilla FC–Levante UD", "Real Madrid–Elche CF", "Valencia CF–Rayo Vallecano", "CA Osasuna–Deportivo Alavés", "Getafe CF–Real Betis", "Racing de Santander–Málaga CF"],
+    34: ["FC Barcelona–CA Osasuna", "Atlético de Madrid–Deportivo Alavés", "Rayo Vallecano–Villarreal CF", "Real Sociedad–Athletic Club", "RC Celta–Sevilla FC", "Levante UD–Real Madrid", "RC Deportivo–Racing de Santander", "Elche CF–RCD Espanyol", "Real Betis–Valencia CF", "Málaga CF–Getafe CF"],
+    35: ["Real Madrid–FC Barcelona", "Valencia CF–Atlético de Madrid", "Villarreal CF–RC Celta", "Athletic Club–Málaga CF", "CA Osasuna–Real Sociedad", "Racing de Santander–Sevilla FC", "Rayo Vallecano–RC Deportivo", "Real Betis–RCD Espanyol", "Deportivo Alavés–Levante UD", "Getafe CF–Elche CF"],
+    36: ["Real Sociedad–FC Barcelona", "Atlético de Madrid–Rayo Vallecano", "Sevilla FC–Villarreal CF", "Elche CF–Athletic Club", "Málaga CF–RC Celta", "Real Madrid–Racing de Santander", "CA Osasuna–Real Betis", "RCD Espanyol–Valencia CF", "RC Deportivo–Deportivo Alavés", "Levante UD–Getafe CF"],
+    37: ["FC Barcelona–Málaga CF", "Atlético de Madrid–Athletic Club", "Villarreal CF–CA Osasuna", "RC Celta–Real Sociedad", "Sevilla FC–Getafe CF", "Deportivo Alavés–Real Madrid", "Rayo Vallecano–Real Betis", "Valencia CF–Elche CF", "Racing de Santander–Levante UD", "RC Deportivo–RCD Espanyol"],
+    38: ["Getafe CF–FC Barcelona", "Real Betis–Atlético de Madrid", "Real Sociedad–Villarreal CF", "Athletic Club–Rayo Vallecano", "Málaga CF–Sevilla FC", "Real Madrid–RC Deportivo", "Levante UD–RC Celta", "CA Osasuna–Valencia CF", "RCD Espanyol–Deportivo Alavés", "Elche CF–Racing de Santander"]
+  };
+
   function vueltaOf(n){ return n<=V1_LAST ? 1 : 2; }
-  function thresholdOf(n){ return THRESHOLD[vueltaOf(n)]; }
+  function thresholdOf(n){ return THRESHOLD_PTS; }
   function isDouble(n){ return !!DOUBLES[n]; }
   function costFor(pos){ pos = Math.max(1, Math.min(8, pos||8)); return COST_TABLE[pos-1]; }
+  function fixturesFor(n){ return LALIGA_FIXTURES[n] || []; }
+  function doubleFixtureLabel(n){
+    // De los 10 partidos de la jornada, el de Clásico/Derbi es el que hace doble la jornada.
+    var fx = fixturesFor(n);
+    var hit = fx.filter(function(m){
+      var isClasico = /Barcelona/.test(m) && /Real Madrid/.test(m);
+      var isDerbi = /Sevilla FC/.test(m) && /Real Betis/.test(m);
+      return isClasico || isDerbi;
+    });
+    return hit[0] || "";
+  }
+
 
   // ---------- histórico conocido (jornadas 1-4 + pagos ya registrados) ----------
   // Se usa (a) como respaldo si Firebase no está configurado/disponible, y
@@ -447,12 +548,16 @@ const FIREBASE_CONFIG = {
     jardinerito:{v1:10,v2:0}, pedrindes:{v1:20,v2:0}, samaritanas:{v1:0,v2:0}, derposo:{v1:0,v2:0},
     shiquinino:{v1:0,v2:0}, carlosklop:{v1:20,v2:0}, arroz:{v1:10,v2:0}, maravilla:{v1:0,v2:0}
   };
+  // Liquidación de la deuda de clasificación (independiente de los Bizum de
+  // presupuesto): de momento nadie ha liquidado nada, así que arranca vacío.
+  var FALLBACK_SETTLEMENTS = {};
 
   // ---------- live state ----------
   var db = null;             // pequeño adaptador sobre Firestore (ver abajo)
   var usingFallback = false;
   var jornadasState = {};   // "n" -> {results:{slug:{pos,pts}}}
-  var paymentsState = {};   // slug -> {v1,v2}
+  var paymentsState = {};   // slug -> {v1,v2} — Bizum de presupuesto del juego (Biwenger), NO cuenta para la clasificación
+  var settlementsState = {}; // slug -> {debtV1Paid, debtV1PaidAt, debtV2Paid, debtV2PaidAt} — liquidación real de la deuda de clasificación
   var selectedJornada = null;
   var adminUnlocked = false;
 
@@ -471,6 +576,12 @@ const FIREBASE_CONFIG = {
   }
 
   // ---------- derived computations ----------
+  // IMPORTANTE: la deuda de clasificación (lo que cada equipo debe por su
+  // posición semanal + penalizaciones + cuota + extra de fin de temporada) y
+  // los Bizum de presupuesto del juego son dos cosas totalmente independientes
+  // (normas 2026/27, apdo. 5). Los Bizum NUNCA se restan de la deuda: la deuda
+  // solo se salda marcándola como "liquidada" en el panel Admin, al cerrar
+  // cada vuelta.
   function computeTeamTotals(){
     var totals = {};
     TEAMS.forEach(function(t){ totals[t.slug] = {slug:t.slug, name:t.name, color:t.color, points:0, played:0, v1Due:0, v2Due:0}; });
@@ -482,7 +593,7 @@ const FIREBASE_CONFIG = {
       if(!jd || !jd.results) return;
       var vuelta = vueltaOf(n);
       var threshold = thresholdOf(n);
-      var mult = isDouble(n) ? 2 : 1;
+      var mult = isDouble(n) ? 2 : 1; // el multiplicador de jornada doble SOLO afecta al coste por posición
       TEAMS.forEach(function(t){
         var r = jd.results[t.slug];
         if(!r || r.pos == null || r.pts == null) return;
@@ -490,23 +601,34 @@ const FIREBASE_CONFIG = {
         tt.points += Number(r.pts) || 0;
         tt.played += 1;
         var cost = costFor(r.pos) * mult;
-        var penalty = (Number(r.pts) < threshold ? PENALTY : 0) * mult;
+        var penalty = (Number(r.pts) < threshold ? PENALTY : 0); // la penalización nunca se duplica
         if(vuelta === 1) tt.v1Due += cost + penalty;
         else tt.v2Due += cost + penalty;
       });
     });
 
+    var seasonOver = maxPlayedJornada() >= TOTAL_JORNADAS;
+
     var out = TEAMS.map(function(t){
       var tt = totals[t.slug];
       var pay = paymentsState[t.slug] || {v1:0, v2:0};
+      var settle = settlementsState[t.slug] || {};
       var pozoDescuento = (t.slug === "derposo") ? POZO_PREMIUM : 0;
-      var totalDue = tt.v1Due + CUOTA_INICIAL + tt.v2Due - pozoDescuento;
-      var recibido = (Number(pay.v1)||0) + (Number(pay.v2)||0);
-      tt.pozoDescuento = pozoDescuento;
-      tt.totalDue = totalDue;
-      tt.recibido = recibido;
-      tt.pendiente = totalDue - recibido;
 
+      // -- deuda de clasificación (independiente de los Bizum) --
+      var v1TotalDue = tt.v1Due + CUOTA_INICIAL - pozoDescuento;
+      var v2TotalDue = tt.v2Due; // el extra de fin de temporada se suma más abajo
+      tt.pozoDescuento = pozoDescuento;
+      tt.v1TotalDue = v1TotalDue;
+      tt.v2TotalDueBase = v2TotalDue;
+      tt.debtV1Paid = !!settle.debtV1Paid;
+      tt.debtV1PaidAt = settle.debtV1PaidAt || null;
+      tt.debtV2Paid = !!settle.debtV2Paid;
+      tt.debtV2PaidAt = settle.debtV2PaidAt || null;
+
+      // -- Bizum: presupuesto del juego, solo informativo, nunca resta deuda --
+      var recibidoBizum = (Number(pay.v1)||0) + (Number(pay.v2)||0);
+      tt.recibidoBizum = recibidoBizum;
       var v1Relevant = (Number(pay.v1)||0) > 0.001;
       var v2Relevant = (Number(pay.v2)||0) > 0.001;
       if(!v1Relevant && !v2Relevant){ tt.confirmState = "none"; }
@@ -522,6 +644,26 @@ const FIREBASE_CONFIG = {
       if(b.points !== a.points) return b.points - a.points;
       return TEAMS.findIndex(function(t){return t.slug===a.slug;}) - TEAMS.findIndex(function(t){return t.slug===b.slug;});
     });
+
+    // -- extra de fin de temporada (apdo. 7.5 y 7.6): solo 4º-7º puesto,
+    // según la diferencia de puntos con el campeón; solo cuenta como deuda
+    // real una vez jugada la jornada 38 (antes se muestra como proyección) --
+    var champion = out[0] ? out[0].points : 0;
+    out.forEach(function(tt, i){
+      var rank = i+1;
+      var extra = 0;
+      if(rank>=4 && rank<=7){
+        var diff = Math.max(0, champion - tt.points);
+        extra = diff*EXTRA_PER_POINT + Math.floor(diff/EXTRA_BLOCK_SIZE)*EXTRA_PER_BLOCK;
+        extra = Math.round(extra*100)/100;
+      }
+      tt.seasonExtra = extra;
+      tt.seasonExtraApplied = seasonOver;
+      tt.v2TotalDue = tt.v2TotalDueBase + (seasonOver ? extra : 0);
+      tt.totalDue = tt.v1TotalDue + tt.v2TotalDue;
+      tt.pendiente = (tt.debtV1Paid ? 0 : tt.v1TotalDue) + (tt.debtV2Paid ? 0 : tt.v2TotalDue);
+    });
+
     return out;
   }
 
@@ -560,14 +702,14 @@ const FIREBASE_CONFIG = {
   // ---------- rendering: resumen ----------
   function renderResumen(){
     var totals = computeTeamTotals();
-    var totalRecaudado = totals.reduce(function(s,t){return s+t.recibido;},0);
     var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
+    var totalBizum = totals.reduce(function(s,t){return s+t.recibidoBizum;},0);
     var maxJ = maxPlayedJornada();
     var lider = totals[0];
 
     var stats = [
-      {label:"Recaudado (Bizum)", value:euros(totalRecaudado), cls:"pitch"},
-      {label:"Pendiente de cobro", value:euros(totalPendiente), cls: totalPendiente>0 ? "danger":"pitch"},
+      {label:"Pendiente de liquidar", value:euros(totalPendiente), cls: totalPendiente>0 ? "danger":"pitch"},
+      {label:"Bizum ingresado (presupuesto)", value:euros(totalBizum), cls:"pitch"},
       {label:"Jornadas jugadas", value:maxJ + " / " + TOTAL_JORNADAS, cls:""},
       {label:"Líder de puntos", value: lider ? lider.name.split(" ").slice(0,2).join(" ") : "–", cls:"gold"}
     ];
@@ -580,19 +722,47 @@ const FIREBASE_CONFIG = {
     document.getElementById("barchart").innerHTML = totals.map(function(t){
       var pct = Math.max(2, Math.round((Math.max(0,t.points)/maxPts)*100));
       return '<div class="barrow">' +
-        '<div class="name"><span class="dot" style="background:'+t.color+'"></span><span class="full">'+t.name+'</span></div>' +
+        '<div class="toprow">' +
+          '<div class="name"><span class="dot" style="background:'+t.color+'"></span><span class="full">'+t.name+'</span></div>' +
+          '<div class="val">'+t.points+'</div>' +
+        '</div>' +
         '<div class="bartrack"><div class="barfill" style="width:'+pct+'%; background:'+t.color+'"></div></div>' +
-        '<div class="val">'+t.points+'</div>' +
         '</div>';
     }).join("");
 
-    // cuentas table
+    // cuentas table (deuda de clasificación — NO incluye Bizum)
+    function liqBadge(paid, at, label){
+      if(paid){
+        var title = at ? ' title="Liquidada el '+new Date(at).toLocaleDateString("es-ES")+'"' : '';
+        return '<span class="pend-ok"'+title+'>'+label+' ✔</span>';
+      }
+      return '<span style="color:var(--muted);">'+label+' —</span>';
+    }
     var tbody = totals.map(function(t, i){
       var pendCls = t.pendiente > 0.001 ? "pend-due" : "pend-ok";
-      var pendTxt = t.pendiente > 0.001 ? euros(t.pendiente)
-        : (t.pendiente < -0.001 ? "A favor " + euros(-t.pendiente) : "Al día");
+      var pendTxt = t.pendiente > 0.001 ? euros(t.pendiente) : "Al día";
       var potNote = t.pozoDescuento ? ' <span title="Incluye -'+euros(t.pozoDescuento)+' del pozo Comunio Premium" style="color:var(--gold); cursor:help;">*</span>' : '';
+      var extraTxt = t.seasonExtra > 0.001
+        ? (euros(t.seasonExtra) + (t.seasonExtraApplied ? '' : ' <span style="color:var(--muted); font-weight:600;">(proyección)</span>'))
+        : '—';
+      var liqHtml = liqBadge(t.debtV1Paid, t.debtV1PaidAt, "1ª") + ' · ' + liqBadge(t.debtV2Paid, t.debtV2PaidAt, "2ª");
 
+      return '<tr data-rank="'+(i+1)+'">' +
+        '<td><span class="rank-badge">'+(i+1)+'</span></td>' +
+        '<td><div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div></td>' +
+        '<td class="num">'+t.points+'</td>' +
+        '<td class="num">'+euros(t.v1TotalDue)+potNote+'</td>' +
+        '<td class="num">'+euros(t.v2TotalDue)+'</td>' +
+        '<td class="num">'+extraTxt+'</td>' +
+        '<td class="num">'+euros(t.totalDue)+'</td>' +
+        '<td>'+liqHtml+'</td>' +
+        '<td class="num '+pendCls+'">'+pendTxt+'</td>' +
+        '</tr>';
+    }).join("");
+    document.querySelector("#tbl-cuentas tbody").innerHTML = tbody;
+
+    // tabla de Bizum (presupuesto del juego, independiente de la deuda)
+    var bizumBody = totals.map(function(t){
       var confHtml, confTitle = "";
       if(t.confirmState === "ok"){
         var dates = [t.pay.v1ConfirmedAt, t.pay.v2ConfirmedAt].filter(Boolean).map(function(iso){
@@ -605,75 +775,20 @@ const FIREBASE_CONFIG = {
       } else {
         confHtml = '<span style="color:var(--muted);">—</span>';
       }
-
-      return '<tr data-rank="'+(i+1)+'">' +
-        '<td><span class="rank-badge">'+(i+1)+'</span></td>' +
+      return '<tr>' +
         '<td><div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div></td>' +
-        '<td class="num">'+t.points+'</td>' +
-        '<td class="num">'+euros(t.totalDue)+potNote+'</td>' +
-        '<td class="num">'+euros(t.recibido)+'</td>' +
+        '<td class="num">'+euros(Number(t.pay.v1)||0)+'</td>' +
+        '<td class="num">'+euros(Number(t.pay.v2)||0)+'</td>' +
+        '<td class="num">'+euros(t.recibidoBizum)+'</td>' +
         '<td>'+confHtml+'</td>' +
-        '<td class="num '+pendCls+'">'+pendTxt+'</td>' +
         '</tr>';
     }).join("");
-    document.querySelector("#tbl-cuentas tbody").innerHTML = tbody;
+    document.querySelector("#tbl-bizum tbody").innerHTML = bizumBody;
 
     var noteEl = document.getElementById("offline-note-resumen");
     noteEl.innerHTML = usingFallback
       ? '<div class="offline-note">Esta vista usa datos de ejemplo porque Firebase todavía no está configurado (o no se pudo conectar). Sigue el README para conectar tu proyecto — hasta entonces, lo que hagas en el panel Admin no se guardará para los demás.</div>'
       : "";
-
-    renderLiquidacionPreview(totals, totalRecaudado, totalPendiente);
-  }
-
-  // ---------- rendering: compartir liquidación ----------
-  function buildLiquidacionText(totals, totalRecaudado, totalPendiente){
-    var lines = [];
-    lines.push("🏆 COMUNIO AMIGUINES 26/27");
-    lines.push("Liquidación a " + fmtDate(new Date()));
-    lines.push("");
-    totals.forEach(function(t, i){
-      var pendTxt;
-      if(t.pendiente > 0.001) pendTxt = "pendiente " + euros(t.pendiente);
-      else if(t.pendiente < -0.001) pendTxt = "a favor " + euros(-t.pendiente);
-      else pendTxt = "al día";
-      var confMark = t.confirmState === "ok" ? " ✅" : (t.confirmState === "pending" ? " ⏳" : "");
-      lines.push((i+1)+". "+t.name+" — "+t.points+" pts — debe "+euros(t.totalDue)+" — ingresado "+euros(t.recibido)+confMark+" — "+pendTxt);
-    });
-    lines.push("");
-    lines.push("💰 Total recaudado: " + euros(totalRecaudado));
-    lines.push("⏳ Pendiente de cobro: " + euros(totalPendiente));
-    return lines.join("\n");
-  }
-
-  function renderLiquidacionPreview(totals, totalRecaudado, totalPendiente){
-    var ta = document.getElementById("liq-preview");
-    if(!ta || document.activeElement === ta) return;
-    ta.value = buildLiquidacionText(totals, totalRecaudado, totalPendiente);
-  }
-
-  async function copyLiquidacion(){
-    var ta = document.getElementById("liq-preview");
-    var text = ta.value;
-    var ok = false;
-    try{
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        await navigator.clipboard.writeText(text);
-        ok = true;
-      }
-    }catch(e){ ok = false; }
-    if(!ok){
-      try{
-        ta.focus(); ta.select();
-        ok = document.execCommand("copy");
-      }catch(e){ ok = false; }
-    }
-    if(ok) flashSaved("liq-copied-msg");
-  }
-
-  async function shareLiquidacion(){
-    var text = document.getElementById("liq-preview").value;
-    try{ if(navigator.share) await navigator.share({text:text}); }catch(e){ /* cancelado o no soportado */ }
   }
 
   // ---------- rendering: jornadas ----------
@@ -707,22 +822,30 @@ const FIREBASE_CONFIG = {
     var jd = jornadasState[String(n)];
     var vuelta = vueltaOf(n);
     var dbl = DOUBLES[n];
+    var fixtures = fixturesFor(n);
+    var dblLabel = dbl ? doubleFixtureLabel(n) : "";
     var head = '<div class="jdetail-head"><h3 style="font-family:\'Bebas Neue\'; font-size:22px;">Jornada '+n+'</h3>' +
       '<span class="chip">'+vuelta+'ª vuelta</span>' +
-      (dbl ? '<span class="chip" style="color:var(--gold); border-color:var(--gold);">x2 · '+dbl.fixture+'</span>' : '') +
+      (dbl ? '<span class="chip" style="color:var(--gold); border-color:var(--gold);">x2'+(dblLabel?' · '+dblLabel:'')+'</span>' : '') +
       '</div>';
+
+    var fixturesHtml = fixtures.length
+      ? '<div class="fixture-list" style="margin-bottom:18px;">' + fixtures.map(function(m){
+          return '<div class="fixture"><span>⚽</span><span>'+m+'</span></div>';
+        }).join("") + '</div>'
+      : '';
 
     var hasData = jd && jd.results && Object.keys(jd.results).some(function(s){var r=jd.results[s]; return r && r.pos!=null && r.pts!=null;});
     if(!hasData){
-      el.innerHTML = head + '<div class="empty-note">Aún no se han introducido resultados para esta jornada. Se pueden añadir desde el panel de Admin.</div>';
+      el.innerHTML = head + fixturesHtml + '<div class="empty-note">Aún no se han introducido resultados de Comunio para esta jornada. Se pueden añadir desde el panel de Admin.</div>';
       return;
     }
     var threshold = thresholdOf(n);
-    var mult = isDouble(n) ? 2 : 1;
+    var mult = isDouble(n) ? 2 : 1; // solo afecta al coste, nunca a la penalización
     var rows = TEAMS.map(function(t){
       var r = jd.results[t.slug] || {};
       var cost = r.pos!=null ? costFor(r.pos)*mult : null;
-      var pen = (r.pts!=null && r.pts < threshold) ? PENALTY*mult : 0;
+      var pen = (r.pts!=null && r.pts < threshold) ? PENALTY : 0;
       return {t:t, r:r, cost:cost, pen:pen};
     }).filter(function(row){ return row.r.pos!=null; })
       .sort(function(a,b){ return a.r.pos - b.r.pos; });
@@ -739,7 +862,7 @@ const FIREBASE_CONFIG = {
         '</tr>';
     }).join("");
 
-    el.innerHTML = head + '<div class="table-scroll"><table class="data">' +
+    el.innerHTML = head + fixturesHtml + '<div class="table-scroll"><table class="data">' +
       '<thead><tr><th>Pos</th><th>Equipo</th><th class="num">Puntos</th><th class="num">Coste</th><th class="num">Penal.</th><th class="num">Total</th></tr></thead>' +
       '<tbody>'+body+'</tbody></table></div>';
   }
@@ -750,8 +873,10 @@ const FIREBASE_CONFIG = {
     document.getElementById("fecha-v2").textContent = fmtDate(DEADLINE_V2);
     var keys = Object.keys(DOUBLES).map(Number).sort(function(a,b){return a-b;});
     document.getElementById("fixture-list").innerHTML = keys.map(function(n){
-      return '<div class="fixture"><span class="jn">J'+n+'</span><span>'+DOUBLES[n].fixture+'</span></div>';
+      return '<div class="fixture"><span class="jn">J'+n+'</span><span>'+doubleFixtureLabel(n)+'</span></div>';
     }).join("");
+    document.querySelector("#tbl-cost-rules tbody").innerHTML =
+      '<tr><td>€ a pagar</td>' + COST_TABLE.map(function(c){ return '<td class="num">'+euros(c)+'</td>'; }).join("") + '</tr>';
   }
 
   // ---------- rendering: admin ----------
@@ -796,6 +921,17 @@ const FIREBASE_CONFIG = {
           '<input type="number" min="0" step="0.5" id="pay2-'+t.slug+'" value="'+(p.v2!=null?p.v2:0)+'" />' +
           '<label class="conf-label"><input type="checkbox" id="conf2-'+t.slug+'" '+(p.v2Confirmed?"checked":"")+' /> confirmado</label>' +
         '</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  function buildSettleForm(){
+    document.getElementById("settle-form").innerHTML = TEAMS.map(function(t){
+      var s = settlementsState[t.slug] || {};
+      return '<div class="pay-grid">' +
+        '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
+        '<div class="pay-cell"><label class="conf-label"><input type="checkbox" id="settle1-'+t.slug+'" '+(s.debtV1Paid?"checked":"")+' /> 1ª vuelta liquidada</label></div>' +
+        '<div class="pay-cell"><label class="conf-label"><input type="checkbox" id="settle2-'+t.slug+'" '+(s.debtV2Paid?"checked":"")+' /> 2ª vuelta liquidada</label></div>' +
         '</div>';
     }).join("");
   }
@@ -854,6 +990,30 @@ const FIREBASE_CONFIG = {
     flashSaved("save-pagos-msg");
   }
 
+  async function saveSettle(){
+    var writes = [];
+    var nowIso = new Date().toISOString();
+    TEAMS.forEach(function(t){
+      var c1 = document.getElementById("settle1-"+t.slug).checked;
+      var c2 = document.getElementById("settle2-"+t.slug).checked;
+      var prev = settlementsState[t.slug] || {};
+      var doc = {
+        debtV1Paid: c1,
+        debtV1PaidAt: c1 ? (prev.debtV1PaidAt || nowIso) : null,
+        debtV2Paid: c2,
+        debtV2PaidAt: c2 ? (prev.debtV2PaidAt || nowIso) : null
+      };
+      if(db){
+        writes.push(db.doc("settlements/"+t.slug).set(doc));
+      } else {
+        settlementsState[t.slug] = doc;
+      }
+    });
+    if(db){ try{ await Promise.all(writes); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); } }
+    else { renderAllLive(); }
+    flashSaved("save-settle-msg");
+  }
+
   async function importHistorico(){
     if(!db){
       alert("Todavía no hay conexión con Firebase. Completa la configuración en index.html (ver README) y vuelve a intentarlo.");
@@ -885,6 +1045,7 @@ const FIREBASE_CONFIG = {
       document.getElementById("pin-error").style.display = "none";
       populateJornadaSelect();
       buildPayForm();
+      buildSettleForm();
     } else {
       document.getElementById("pin-error").style.display = "block";
     }
@@ -925,13 +1086,8 @@ const FIREBASE_CONFIG = {
     document.getElementById("jornada-select").addEventListener("change", buildJornadaForm);
     document.getElementById("save-jornada").addEventListener("click", saveJornada);
     document.getElementById("save-pagos").addEventListener("click", savePagos);
+    document.getElementById("save-settle").addEventListener("click", saveSettle);
     document.getElementById("btn-import-historico").addEventListener("click", importHistorico);
-    document.getElementById("btn-copy-liq").addEventListener("click", copyLiquidacion);
-    if(navigator.share){
-      var shareBtn = document.getElementById("btn-share-liq");
-      shareBtn.style.display = "inline-block";
-      shareBtn.addEventListener("click", shareLiquidacion);
-    }
 
     renderReglas();
 
@@ -962,8 +1118,9 @@ const FIREBASE_CONFIG = {
         usingFallback = true;
         jornadasState = FALLBACK_JORNADAS;
         paymentsState = FALLBACK_PAYMENTS;
+        settlementsState = FALLBACK_SETTLEMENTS;
         renderAllLive();
-        if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); }
+        if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); buildSettleForm(); }
         return;
       }
 
@@ -999,7 +1156,14 @@ const FIREBASE_CONFIG = {
         renderAllLive();
       }, function(err){ console.error("payments snapshot error", err); });
 
-      if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); }
+      db.collection("settlements").onSnapshot(function(snap){
+        var next = {};
+        snap.docs.forEach(function(d){ next[d.id] = d.data(); });
+        settlementsState = next;
+        renderAllLive();
+      }, function(err){ console.error("settlements snapshot error", err); });
+
+      if(adminUnlocked){ populateJornadaSelect(); buildPayForm(); buildSettleForm(); }
     })();
   }
 
