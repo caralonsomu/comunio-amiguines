@@ -218,6 +218,12 @@
   .save-msg{font-size:13px; color:var(--good); font-weight:700; opacity:0; transition:opacity .3s;}
   .save-msg.show{opacity:1;}
   .offline-note{font-size:13px; color:var(--gold); background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:14px;}
+  .wa-textarea{
+    width:100%; min-height:220px; font-family:inherit; font-size:13px; line-height:1.5;
+    padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--ink); resize:vertical; white-space:pre-wrap;
+  }
+  .wa-textarea:focus-visible{outline:2px solid var(--pitch); outline-offset:1px;}
 
   footer{max-width:960px; margin:30px auto 0; color:var(--muted); font-size:12px; text-align:center;}
 </style>
@@ -258,13 +264,14 @@
 
       <div class="card">
         <h2>Cuentas de cada equipo</h2>
-        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones) y lo que ya se le ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong>.</div>
+        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones), lo que ya se le ha liquidado, y aparte, lo que ha metido de Bizum como presupuesto extra del juego (son cosas distintas: el Bizum <strong>no</strong> cuenta para la deuda de la clasificación).</div>
         <div class="table-scroll">
           <table class="data" id="tbl-cuentas">
             <thead>
               <tr>
                 <th>#</th><th>Equipo</th><th class="num">Puntos</th>
                 <th class="num">Debe</th><th class="num">Liquidado</th><th class="num">Pendiente</th>
+                <th class="num">Bizum aportado</th><th>Confirmado</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -288,21 +295,6 @@
         <div class="table-scroll">
           <table class="data mini-table" id="tbl-bote">
             <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Bizum — presupuesto extra del juego</h2>
-        <div class="sub">Además de la deuda de la clasificación, cualquiera puede meter dinero por su cuenta para tener más presupuesto en Biwenger. Es totalmente aparte.</div>
-        <div class="table-scroll">
-          <table class="data" id="tbl-bizum">
-            <thead>
-              <tr>
-                <th>Equipo</th><th class="num">Bizum aportado</th><th>Confirmado</th>
-              </tr>
-            </thead>
             <tbody></tbody>
           </table>
         </div>
@@ -412,11 +404,12 @@
 
       <div id="admin-unlocked" style="display:none;">
         <div class="card">
-          <h2>Importar histórico</h2>
-          <div class="sub">Un solo clic para cargar las jornadas 1-4 y los pagos que ya teníais en el Excel, en vez de teclearlos a mano. Solo hace falta hacerlo una vez.</div>
+          <h2>Resumen para WhatsApp</h2>
+          <div class="sub">Texto listo para copiar y pegar en el grupo de WhatsApp, con la clasificación, las cuentas de cada equipo y el bote. Se actualiza solo con los datos actuales.</div>
+          <textarea class="wa-textarea" id="whatsapp-text" readonly></textarea>
           <div class="save-row">
-            <button class="btn ghost" id="btn-import-historico">Importar histórico</button>
-            <span class="save-msg" id="import-msg">Importado ✓</span>
+            <button class="btn" id="btn-copy-whatsapp">Copiar para WhatsApp</button>
+            <span class="save-msg" id="copy-whatsapp-msg">Copiado ✓</span>
           </div>
         </div>
 
@@ -588,8 +581,8 @@ const FIREBASE_CONFIG = {
 
 
   // ---------- histórico conocido (jornadas 1-4 + pagos ya registrados) ----------
-  // Se usa (a) como respaldo si Firebase no está configurado/disponible, y
-  // (b) para el botón "Importar histórico" del panel Admin.
+  // Se usa como respaldo (datos de ejemplo) si Firebase no está configurado o
+  // no se puede conectar.
   var FALLBACK_JORNADAS = {
     "1": {results:{jardinerito:{pos:5,pts:34}, pedrindes:{pos:2,pts:49}, samaritanas:{pos:4,pts:35}, derposo:{pos:4,pts:35}, shiquinino:{pos:8,pts:18}, carlosklop:{pos:1,pts:64}, arroz:{pos:6,pts:30}, maravilla:{pos:7,pts:28}}},
     "2": {results:{jardinerito:{pos:5,pts:45}, pedrindes:{pos:2,pts:55}, samaritanas:{pos:4,pts:48}, derposo:{pos:6,pts:42}, shiquinino:{pos:8,pts:-6}, carlosklop:{pos:1,pts:58}, arroz:{pos:3,pts:53}, maravilla:{pos:7,pts:37}}},
@@ -612,10 +605,10 @@ const FIREBASE_CONFIG = {
   // Bizum: presupuesto extra del juego (Biwenger), NO cuenta para la deuda de
   // clasificación. Un único importe acumulado + si está confirmado.
   var FALLBACK_PAYMENTS = {
-    jardinerito:{amount:10,confirmed:false,confirmedAt:null}, pedrindes:{amount:20,confirmed:false,confirmedAt:null},
+    jardinerito:{amount:10,confirmed:true,confirmedAt:null}, pedrindes:{amount:20,confirmed:true,confirmedAt:null},
     samaritanas:{amount:0,confirmed:false,confirmedAt:null}, derposo:{amount:0,confirmed:false,confirmedAt:null},
-    shiquinino:{amount:0,confirmed:false,confirmedAt:null}, carlosklop:{amount:20,confirmed:false,confirmedAt:null},
-    arroz:{amount:10,confirmed:false,confirmedAt:null}, maravilla:{amount:0,confirmed:false,confirmedAt:null}
+    shiquinino:{amount:10,confirmed:true,confirmedAt:null}, carlosklop:{amount:20,confirmed:true,confirmedAt:null},
+    arroz:{amount:10,confirmed:true,confirmedAt:null}, maravilla:{amount:20,confirmed:true,confirmedAt:null}
   };
   // Liquidación de la deuda de clasificación (independiente de los Bizum): de
   // momento nadie ha liquidado nada, así que arranca vacío.
@@ -784,11 +777,21 @@ const FIREBASE_CONFIG = {
         '</div>';
     }).join("");
 
-    // cuentas table (deuda de clasificación — NO incluye Bizum)
+    // cuentas table (deuda de clasificación + columnas de Bizum, que es presupuesto aparte)
     var tbody = totals.map(function(t, i){
       var pendCls = t.pendiente > 0.001 ? "pend-due" : "pend-ok";
       var pendTxt = t.pendiente > 0.001 ? euros(t.pendiente) : "Al día";
       var liqTitle = t.liquidadoAt ? ' title="Última actualización: '+new Date(t.liquidadoAt).toLocaleDateString("es-ES")+'"' : '';
+
+      var confHtml, confTitle = "";
+      if(t.confirmState === "ok"){
+        confTitle = t.pay.confirmedAt ? ' title="Confirmado el '+new Date(t.pay.confirmedAt).toLocaleDateString("es-ES")+'"' : '';
+        confHtml = '<span class="pend-ok"'+confTitle+'>✔ Sí</span>';
+      } else if(t.confirmState === "pending"){
+        confHtml = '<span style="color:var(--gold); font-weight:800;">Sin confirmar</span>';
+      } else {
+        confHtml = '<span style="color:var(--muted);">—</span>';
+      }
 
       return '<tr data-rank="'+(i+1)+'">' +
         '<td><span class="rank-badge">'+(i+1)+'</span></td>' +
@@ -797,6 +800,8 @@ const FIREBASE_CONFIG = {
         '<td class="num">'+euros(t.totalDue)+'</td>' +
         '<td class="num"'+liqTitle+'>'+euros(t.liquidado)+'</td>' +
         '<td class="num '+pendCls+'">'+pendTxt+'</td>' +
+        '<td class="num">'+euros(t.recibidoBizum)+'</td>' +
+        '<td>'+confHtml+'</td>' +
         '</tr>';
     }).join("");
     document.querySelector("#tbl-cuentas tbody").innerHTML = tbody;
@@ -815,25 +820,6 @@ const FIREBASE_CONFIG = {
       var strong = i === boteRows.length-1 ? ' style="font-weight:800;"' : '';
       return '<tr'+strong+'><td>'+row[0]+'</td><td class="num">'+row[1]+'</td></tr>';
     }).join("");
-
-    // tabla de Bizum (presupuesto del juego, independiente de la deuda)
-    var bizumBody = totals.map(function(t){
-      var confHtml, confTitle = "";
-      if(t.confirmState === "ok"){
-        confTitle = t.pay.confirmedAt ? ' title="Confirmado el '+new Date(t.pay.confirmedAt).toLocaleDateString("es-ES")+'"' : '';
-        confHtml = '<span class="pend-ok"'+confTitle+'>✔ Sí</span>';
-      } else if(t.confirmState === "pending"){
-        confHtml = '<span style="color:var(--gold); font-weight:800;">Sin confirmar</span>';
-      } else {
-        confHtml = '<span style="color:var(--muted);">—</span>';
-      }
-      return '<tr>' +
-        '<td><div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div></td>' +
-        '<td class="num">'+euros(t.recibidoBizum)+'</td>' +
-        '<td>'+confHtml+'</td>' +
-        '</tr>';
-    }).join("");
-    document.querySelector("#tbl-bizum tbody").innerHTML = bizumBody;
 
     var noteEl = document.getElementById("offline-note-resumen");
     noteEl.innerHTML = usingFallback
@@ -1083,24 +1069,59 @@ const FIREBASE_CONFIG = {
     flashSaved("save-settle-msg");
   }
 
-  async function importHistorico(){
-    if(!db){
-      alert("Todavía no hay conexión con Firebase. Completa la configuración en index.html (ver README) y vuelve a intentarlo.");
-      return;
-    }
+  // ---------- resumen para WhatsApp ----------
+  function buildWhatsappText(){
+    var totals = computeTeamTotals();
+    var maxJ = maxPlayedJornada();
+    var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
+    var totalBizumConfirmado = totals.reduce(function(s,t){return s + (t.confirmState==="ok" ? t.recibidoBizum : 0);},0);
+    var totalLiquidado = totals.reduce(function(s,t){return s+t.liquidado;},0);
+    var boteEstaTemporada = totalLiquidado + totalBizumConfirmado - PREMIUM_COST;
+
+    var lines = [];
+    lines.push("📊 *Comunio Amiguines 26/27* — Jornada " + (maxJ || 0) + "/" + TOTAL_JORNADAS);
+    lines.push("");
+    lines.push("🏆 *Clasificación:*");
+    totals.forEach(function(t, i){
+      lines.push((i+1) + ". " + t.name + " — " + t.points + " pts");
+    });
+    lines.push("");
+    lines.push("💰 *Cuentas (clasificación, sin contar Bizum):*");
+    totals.forEach(function(t){
+      var pendTxt = t.pendiente > 0.001 ? "pendiente " + euros(t.pendiente) : "al día";
+      lines.push(t.name + ": debe " + euros(t.totalDue) + ", liquidado " + euros(t.liquidado) + " → " + pendTxt);
+    });
+    lines.push("Total pendiente de liquidar: " + euros(totalPendiente));
+    lines.push("");
+    lines.push("💸 *Bizum (presupuesto extra, aparte de la clasificación):*");
+    totals.forEach(function(t){
+      var estado = t.confirmState === "ok" ? "✔ confirmado" : (t.confirmState === "pending" ? "sin confirmar" : "—");
+      lines.push(t.name + ": " + euros(t.recibidoBizum) + (t.recibidoBizum > 0.001 ? " (" + estado + ")" : ""));
+    });
+    lines.push("");
+    lines.push("🎒 *Bote del grupo (para el viaje):*");
+    lines.push("Esta temporada (2026/27): " + euros(boteEstaTemporada));
+    lines.push("Temporada pasada (2025/26): " + euros(BOTE_ANTERIOR));
+
+    return lines.join("\n");
+  }
+
+  function renderWhatsapp(){
+    var el = document.getElementById("whatsapp-text");
+    if(el) el.value = buildWhatsappText();
+  }
+
+  async function copyWhatsapp(){
+    var text = document.getElementById("whatsapp-text").value;
     try{
-      var writes = [];
-      Object.keys(FALLBACK_JORNADAS).forEach(function(n){
-        writes.push(db.doc("jornadas/"+n).set(FALLBACK_JORNADAS[n]));
-      });
-      Object.keys(FALLBACK_PAYMENTS).forEach(function(slug){
-        writes.push(db.doc("payments/"+slug).set(FALLBACK_PAYMENTS[slug]));
-      });
-      await Promise.all(writes);
-      flashSaved("import-msg");
+      await navigator.clipboard.writeText(text);
+      flashSaved("copy-whatsapp-msg");
     }catch(e){
-      console.error(e);
-      alert("Hubo un error importando. Revisa la consola.");
+      // fallback si el navegador bloquea el portapapeles: selecciona el texto a mano
+      var el = document.getElementById("whatsapp-text");
+      el.focus();
+      el.select();
+      flashSaved("copy-whatsapp-msg");
     }
   }
 
@@ -1136,6 +1157,7 @@ const FIREBASE_CONFIG = {
     renderResumen();
     renderJornadaGrids();
     renderJornadaDetail();
+    renderWhatsapp();
   }
 
   function init(){
@@ -1156,7 +1178,7 @@ const FIREBASE_CONFIG = {
     document.getElementById("save-jornada").addEventListener("click", saveJornada);
     document.getElementById("save-pagos").addEventListener("click", savePagos);
     document.getElementById("save-settle").addEventListener("click", saveSettle);
-    document.getElementById("btn-import-historico").addEventListener("click", importHistorico);
+    document.getElementById("btn-copy-whatsapp").addEventListener("click", copyWhatsapp);
 
     renderReglas();
 
