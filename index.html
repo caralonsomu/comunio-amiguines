@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comunio Amiguines</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
+
+<!-- PWA: permite "Añadir a pantalla de inicio" desde el móvil, con su propio
+     icono (un trofeo, distinto del balón que se ve en la pestaña del navegador)
+     y abriéndose a pantalla completa como una app. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f6f3e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1712" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Comunio Amiguines">
+<meta name="mobile-web-app-capable" content="yes">
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Karla:wght@400;500;600;700;800&display=swap">
 <style>
   :root{
@@ -263,6 +276,7 @@
 
   <nav class="tabs" role="tablist">
     <button class="tab-btn active" data-tab="resumen" role="tab">Resumen</button>
+    <button class="tab-btn" data-tab="graficas" role="tab">Gráficas</button>
     <button class="tab-btn" data-tab="jornadas" role="tab">Jornadas</button>
     <button class="tab-btn" data-tab="reglas" role="tab">Reglas</button>
     <button class="tab-btn" data-tab="admin" role="tab">Admin</button>
@@ -279,16 +293,6 @@
         <h2>Clasificación por puntos</h2>
         <div class="sub">Suma de puntos Comunio en todas las jornadas jugadas</div>
         <div class="barchart" id="barchart"></div>
-      </div>
-
-      <div class="card">
-        <h2>Evolución de puntos por jornada</h2>
-        <div class="sub">Puntos acumulados de cada equipo después de cada jornada jugada. Pasa el ratón (o el dedo) por la gráfica para ver el detalle de una jornada — el desglose exacto de cada semana también está en la pestaña Jornadas.</div>
-        <div class="chart-wrap" id="linechart-wrap">
-          <svg id="linechart" viewBox="0 0 760 300" preserveAspectRatio="none"></svg>
-          <div class="chart-tooltip" id="linechart-tooltip"></div>
-        </div>
-        <div class="chart-legend" id="linechart-legend"></div>
       </div>
 
       <div class="card">
@@ -329,6 +333,29 @@
         </div>
       </div>
 
+    </section>
+
+    <!-- GRAFICAS -->
+    <section id="tab-graficas" class="tabpanel">
+      <div class="card">
+        <h2>Evolución de puntos por jornada</h2>
+        <div class="sub">Puntos acumulados de cada equipo después de cada jornada jugada. Pasa el ratón (o el dedo) por la gráfica para ver el detalle de una jornada.</div>
+        <div class="chart-wrap" id="linechart-evo-wrap">
+          <svg id="linechart-evo" viewBox="0 0 760 300" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="linechart-evo-tooltip"></div>
+        </div>
+        <div class="chart-legend" id="linechart-evo-legend"></div>
+      </div>
+
+      <div class="card">
+        <h2>Puntos de cada jornada</h2>
+        <div class="sub">Puntos conseguidos por cada equipo en cada jornada suelta (sin acumular), para ver quién está en racha o en bajón últimamente. El desglose exacto de cada semana también está en la pestaña Jornadas.</div>
+        <div class="chart-wrap" id="linechart-week-wrap">
+          <svg id="linechart-week" viewBox="0 0 760 300" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="linechart-week-tooltip"></div>
+        </div>
+        <div class="chart-legend" id="linechart-week-legend"></div>
+      </div>
     </section>
 
     <!-- JORNADAS -->
@@ -868,13 +895,9 @@ const FIREBASE_CONFIG = {
     noteEl.innerHTML = usingFallback
       ? '<div class="offline-note">Esta vista usa datos de ejemplo porque Firebase todavía no está configurado (o no se pudo conectar). Sigue el README para conectar tu proyecto — hasta entonces, lo que hagas en el panel Admin no se guardará para los demás.</div>'
       : "";
-
-    renderLineChart();
   }
 
-  // ---------- gráfica de evolución de puntos (líneas) ----------
-  var lineChartLayout = null; // guarda la geometría del último render, para el hover
-
+  // ---------- pestaña Gráficas (líneas, evolución acumulada y por jornada) ----------
   function computePointsSeries(){
     var jns = Object.keys(jornadasState).map(Number).filter(function(n){
       var jd = jornadasState[String(n)];
@@ -898,147 +921,195 @@ const FIREBASE_CONFIG = {
     return {jornadas: jns, series: series};
   }
 
-  function renderLineChart(){
-    var wrap = document.getElementById("linechart-wrap");
-    var svg = document.getElementById("linechart");
-    var legendEl = document.getElementById("linechart-legend");
-    var data = computePointsSeries();
-    var jns = data.jornadas, series = data.series;
-    var n = jns.length;
+  function computeRawPointsSeries(){
+    var jns = Object.keys(jornadasState).map(Number).filter(function(n){
+      var jd = jornadasState[String(n)];
+      return jd && jd.results && TEAMS.some(function(t){ var r = jd.results[t.slug]; return r && r.pts != null; });
+    }).sort(function(a,b){ return a-b; });
 
-    legendEl.innerHTML = TEAMS.map(function(t){
-      return '<div class="lg-item"><span class="lg-key" style="background:'+t.color+'"></span>'+t.name+'</div>';
-    }).join("");
+    var series = {};
+    TEAMS.forEach(function(t){ series[t.slug] = []; });
 
-    if(n === 0){
-      svg.innerHTML = "";
-      wrap.querySelector(".chart-empty") && wrap.querySelector(".chart-empty").remove();
-      var emptyDiv = document.createElement("div");
-      emptyDiv.className = "chart-empty";
-      emptyDiv.textContent = "Todavía no hay ninguna jornada jugada.";
-      wrap.appendChild(emptyDiv);
-      lineChartLayout = null;
-      return;
-    }
-    var oldEmpty = wrap.querySelector(".chart-empty");
-    if(oldEmpty) oldEmpty.remove();
-
-    var W = 760, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 14, PAD_B = 26;
-    var plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
-    var denom = n > 1 ? (n-1) : 1;
-
-    var allVals = [];
-    TEAMS.forEach(function(t){ series[t.slug].forEach(function(v){ allVals.push(v); }); });
-    var rawMin = Math.min.apply(null, allVals), rawMax = Math.max.apply(null, allVals);
-    var range = Math.max(1, rawMax - rawMin);
-    var yMin = rawMin - range*0.08, yMax = rawMax + range*0.08;
-
-    function xAt(i){ return PAD_L + (n > 1 ? (i/denom)*plotW : plotW/2); }
-    function yAt(v){ return PAD_T + (1 - (v - yMin)/(yMax - yMin)) * plotH; }
-
-    lineChartLayout = {jornadas: jns, series: series, xAt: xAt, W: W, H: H, PAD_L: PAD_L, PAD_R: PAD_R};
-
-    var svgParts = [];
-
-    // gridlines + etiquetas del eje Y (4 niveles)
-    var ticks = 4;
-    for(var k=0; k<=ticks; k++){
-      var v = yMin + (yMax-yMin)*(k/ticks);
-      var yy = yAt(v);
-      svgParts.push('<line x1="'+PAD_L+'" y1="'+yy+'" x2="'+(W-PAD_R)+'" y2="'+yy+'" style="stroke:var(--line); stroke-width:1;" />');
-      svgParts.push('<text x="'+(PAD_L-8)+'" y="'+(yy+3)+'" text-anchor="end" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">'+Math.round(v)+'</text>');
-    }
-
-    // etiquetas del eje X (jornada), con salto si hay muchas
-    var maxLabels = 11;
-    var step = n > maxLabels ? Math.ceil(n/maxLabels) : 1;
-    jns.forEach(function(jn, i){
-      if(i % step !== 0 && i !== n-1) return;
-      svgParts.push('<text x="'+xAt(i)+'" y="'+(H-6)+'" text-anchor="middle" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">J'+jn+'</text>');
+    jns.forEach(function(n){
+      var jd = jornadasState[String(n)];
+      TEAMS.forEach(function(t){
+        var r = jd.results[t.slug];
+        var pts = (r && r.pts != null) ? Number(r.pts) : 0;
+        series[t.slug].push(pts);
+      });
     });
 
-    // una línea por equipo, en el orden fijo de TEAMS
-    TEAMS.forEach(function(t){
-      var pts = series[t.slug].map(function(v, i){ return xAt(i)+","+yAt(v); }).join(" L ");
-      svgParts.push('<path d="M '+pts+'" fill="none" style="stroke:'+t.color+'; stroke-width:2.5;" stroke-linecap="round" stroke-linejoin="round" />');
-      // marcador final: anillo en el color de superficie + punto de color
-      var lastV = series[t.slug][n-1];
-      svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="7" style="fill:var(--surface);" />');
-      svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="4.5" style="fill:'+t.color+';" />');
-    });
-
-    // línea vertical de cruce (crosshair), oculta hasta el primer hover
-    svgParts.push('<line id="linechart-crosshair" x1="0" y1="'+PAD_T+'" x2="0" y2="'+(H-PAD_B)+'" style="stroke:var(--muted); stroke-width:1; opacity:0;" />');
-
-    svg.setAttribute("viewBox", "0 0 "+W+" "+H);
-    svg.innerHTML = svgParts.join("");
+    return {jornadas: jns, series: series};
   }
 
-  function handleLineChartPointer(evt){
-    if(!lineChartLayout) return;
-    var svg = document.getElementById("linechart");
-    var wrap = document.getElementById("linechart-wrap");
-    var tooltip = document.getElementById("linechart-tooltip");
-    var crosshair = document.getElementById("linechart-crosshair");
-    var rect = svg.getBoundingClientRect();
-    if(rect.width === 0) return;
-    var clientX = (evt.touches && evt.touches[0]) ? evt.touches[0].clientX : evt.clientX;
-    var clientY = (evt.touches && evt.touches[0]) ? evt.touches[0].clientY : evt.clientY;
-    var relX = (clientX - rect.left) / rect.width * lineChartLayout.W;
+  // Fábrica de gráficas de líneas: crea una instancia independiente (con su
+  // propia geometría y su propio hover) para cada <svg>/tooltip/leyenda. Así
+  // "Evolución acumulada" y "Puntos por jornada" pueden convivir sin pisarse.
+  function makeLineChart(ids, dataFn, opts){
+    opts = opts || {};
+    var layout = null;
 
-    var jns = lineChartLayout.jornadas, n = jns.length;
-    var best = 0, bestDist = Infinity;
-    for(var i=0;i<n;i++){
-      var d = Math.abs(lineChartLayout.xAt(i) - relX);
-      if(d < bestDist){ bestDist = d; best = i; }
+    function render(){
+      var wrap = document.getElementById(ids.wrap);
+      var svg = document.getElementById(ids.svg);
+      var legendEl = document.getElementById(ids.legend);
+      var data = dataFn();
+      var jns = data.jornadas, series = data.series;
+      var n = jns.length;
+
+      legendEl.innerHTML = TEAMS.map(function(t){
+        return '<div class="lg-item"><span class="lg-key" style="background:'+t.color+'"></span>'+t.name+'</div>';
+      }).join("");
+
+      var oldEmpty = wrap.querySelector(".chart-empty");
+      if(oldEmpty) oldEmpty.remove();
+
+      if(n === 0){
+        svg.innerHTML = "";
+        var emptyDiv = document.createElement("div");
+        emptyDiv.className = "chart-empty";
+        emptyDiv.textContent = "Todavía no hay ninguna jornada jugada.";
+        wrap.appendChild(emptyDiv);
+        layout = null;
+        return;
+      }
+
+      var W = 760, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 14, PAD_B = 26;
+      var plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+      var denom = n > 1 ? (n-1) : 1;
+
+      var allVals = [];
+      TEAMS.forEach(function(t){ series[t.slug].forEach(function(v){ allVals.push(v); }); });
+      var rawMin = Math.min.apply(null, allVals), rawMax = Math.max.apply(null, allVals);
+      if(opts.zeroBaseline){ rawMin = Math.min(0, rawMin); }
+      var range = Math.max(1, rawMax - rawMin);
+      var yMin = rawMin - range*0.08, yMax = rawMax + range*0.08;
+
+      function xAt(i){ return PAD_L + (n > 1 ? (i/denom)*plotW : plotW/2); }
+      function yAt(v){ return PAD_T + (1 - (v - yMin)/(yMax - yMin)) * plotH; }
+
+      layout = {jornadas: jns, series: series, xAt: xAt, W: W, H: H, PAD_L: PAD_L, PAD_R: PAD_R};
+
+      var svgParts = [];
+
+      // gridlines + etiquetas del eje Y (4 niveles)
+      var ticks = 4;
+      for(var k=0; k<=ticks; k++){
+        var v = yMin + (yMax-yMin)*(k/ticks);
+        var yy = yAt(v);
+        svgParts.push('<line x1="'+PAD_L+'" y1="'+yy+'" x2="'+(W-PAD_R)+'" y2="'+yy+'" style="stroke:var(--line); stroke-width:1;" />');
+        svgParts.push('<text x="'+(PAD_L-8)+'" y="'+(yy+3)+'" text-anchor="end" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">'+Math.round(v)+'</text>');
+      }
+
+      // etiquetas del eje X (jornada), con salto si hay muchas
+      var maxLabels = 11;
+      var step = n > maxLabels ? Math.ceil(n/maxLabels) : 1;
+      jns.forEach(function(jn, i){
+        if(i % step !== 0 && i !== n-1) return;
+        svgParts.push('<text x="'+xAt(i)+'" y="'+(H-6)+'" text-anchor="middle" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">J'+jn+'</text>');
+      });
+
+      // una línea por equipo, en el orden fijo de TEAMS
+      TEAMS.forEach(function(t){
+        var pts = series[t.slug].map(function(v, i){ return xAt(i)+","+yAt(v); }).join(" L ");
+        svgParts.push('<path d="M '+pts+'" fill="none" style="stroke:'+t.color+'; stroke-width:2.5;" stroke-linecap="round" stroke-linejoin="round" />');
+        // marcador final: anillo en el color de superficie + punto de color
+        var lastV = series[t.slug][n-1];
+        svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="7" style="fill:var(--surface);" />');
+        svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="4.5" style="fill:'+t.color+';" />');
+      });
+
+      // línea vertical de cruce (crosshair), oculta hasta el primer hover
+      svgParts.push('<line class="lc-crosshair" x1="0" y1="'+PAD_T+'" x2="0" y2="'+(H-PAD_B)+'" style="stroke:var(--muted); stroke-width:1; opacity:0;" />');
+
+      svg.setAttribute("viewBox", "0 0 "+W+" "+H);
+      svg.innerHTML = svgParts.join("");
     }
 
-    if(crosshair){
-      var cx = lineChartLayout.xAt(best);
-      crosshair.setAttribute("x1", cx); crosshair.setAttribute("x2", cx);
-      crosshair.style.opacity = "1";
+    function onPointer(evt){
+      if(!layout) return;
+      var svg = document.getElementById(ids.svg);
+      var wrap = document.getElementById(ids.wrap);
+      var tooltip = document.getElementById(ids.tooltip);
+      var crosshair = svg.querySelector(".lc-crosshair");
+      var rect = svg.getBoundingClientRect();
+      if(rect.width === 0) return;
+      var clientX = (evt.touches && evt.touches[0]) ? evt.touches[0].clientX : evt.clientX;
+      var clientY = (evt.touches && evt.touches[0]) ? evt.touches[0].clientY : evt.clientY;
+      var relX = (clientX - rect.left) / rect.width * layout.W;
+
+      var jns = layout.jornadas, n = jns.length;
+      var best = 0, bestDist = Infinity;
+      for(var i=0;i<n;i++){
+        var d = Math.abs(layout.xAt(i) - relX);
+        if(d < bestDist){ bestDist = d; best = i; }
+      }
+
+      if(crosshair){
+        var cx = layout.xAt(best);
+        crosshair.setAttribute("x1", cx); crosshair.setAttribute("x2", cx);
+        crosshair.style.opacity = "1";
+      }
+
+      var rows = TEAMS.map(function(t){
+        return {name:t.name, color:t.color, val: layout.series[t.slug][best]};
+      }).sort(function(a,b){ return b.val - a.val; });
+
+      tooltip.innerHTML = "";
+      var title = document.createElement("div");
+      title.className = "tt-title";
+      title.textContent = "Jornada " + jns[best];
+      tooltip.appendChild(title);
+      rows.forEach(function(r){
+        var row = document.createElement("div");
+        row.className = "tt-row";
+        var key = document.createElement("span");
+        key.className = "tt-key";
+        key.style.background = r.color;
+        var name = document.createElement("span");
+        name.className = "tt-name";
+        name.textContent = r.name;
+        var val = document.createElement("span");
+        val.className = "tt-val";
+        val.textContent = String(r.val);
+        row.appendChild(key); row.appendChild(name); row.appendChild(val);
+        tooltip.appendChild(row);
+      });
+
+      var wrapRect = wrap.getBoundingClientRect();
+      var left = clientX - wrapRect.left + 16;
+      var top = clientY - wrapRect.top - 10;
+      if(left + 210 > wrapRect.width) left = clientX - wrapRect.left - 226;
+      if(left < 0) left = 4;
+      tooltip.style.left = left + "px";
+      tooltip.style.top = Math.max(0, top) + "px";
+      tooltip.classList.add("show");
     }
 
-    var rows = TEAMS.map(function(t){
-      return {name:t.name, color:t.color, val: lineChartLayout.series[t.slug][best]};
-    }).sort(function(a,b){ return b.val - a.val; });
+    function onLeave(){
+      var tooltip = document.getElementById(ids.tooltip);
+      var svg = document.getElementById(ids.svg);
+      var crosshair = svg && svg.querySelector(".lc-crosshair");
+      if(tooltip) tooltip.classList.remove("show");
+      if(crosshair) crosshair.style.opacity = "0";
+    }
 
-    tooltip.innerHTML = "";
-    var title = document.createElement("div");
-    title.className = "tt-title";
-    title.textContent = "Jornada " + jns[best];
-    tooltip.appendChild(title);
-    rows.forEach(function(r){
-      var row = document.createElement("div");
-      row.className = "tt-row";
-      var key = document.createElement("span");
-      key.className = "tt-key";
-      key.style.background = r.color;
-      var name = document.createElement("span");
-      name.className = "tt-name";
-      name.textContent = r.name;
-      var val = document.createElement("span");
-      val.className = "tt-val";
-      val.textContent = String(r.val);
-      row.appendChild(key); row.appendChild(name); row.appendChild(val);
-      tooltip.appendChild(row);
-    });
-
-    var wrapRect = wrap.getBoundingClientRect();
-    var left = clientX - wrapRect.left + 16;
-    var top = clientY - wrapRect.top - 10;
-    if(left + 210 > wrapRect.width) left = clientX - wrapRect.left - 226;
-    if(left < 0) left = 4;
-    tooltip.style.left = left + "px";
-    tooltip.style.top = Math.max(0, top) + "px";
-    tooltip.classList.add("show");
+    return {render: render, onPointer: onPointer, onLeave: onLeave};
   }
 
-  function hideLineChartTooltip(){
-    var tooltip = document.getElementById("linechart-tooltip");
-    var crosshair = document.getElementById("linechart-crosshair");
-    if(tooltip) tooltip.classList.remove("show");
-    if(crosshair) crosshair.style.opacity = "0";
+  var evoChart = makeLineChart(
+    {svg:"linechart-evo", wrap:"linechart-evo-wrap", tooltip:"linechart-evo-tooltip", legend:"linechart-evo-legend"},
+    computePointsSeries
+  );
+  var weekChart = makeLineChart(
+    {svg:"linechart-week", wrap:"linechart-week-wrap", tooltip:"linechart-week-tooltip", legend:"linechart-week-legend"},
+    computeRawPointsSeries,
+    {zeroBaseline:true}
+  );
+
+  function renderGraficas(){
+    evoChart.render();
+    weekChart.render();
   }
 
   // ---------- rendering: jornadas ----------
@@ -1638,6 +1709,7 @@ const FIREBASE_CONFIG = {
   function renderAllLive(){
     renderHeader();
     renderResumen();
+    renderGraficas();
     renderJornadaGrids();
     renderJornadaDetail();
     renderWhatsapp();
@@ -1666,12 +1738,14 @@ const FIREBASE_CONFIG = {
     document.getElementById("btn-copy-image").addEventListener("click", copyWhatsappImage);
     document.getElementById("btn-download-image").addEventListener("click", downloadWhatsappImage);
 
-    var lcWrap = document.getElementById("linechart-wrap");
-    lcWrap.addEventListener("mousemove", handleLineChartPointer);
-    lcWrap.addEventListener("mouseleave", hideLineChartTooltip);
-    lcWrap.addEventListener("touchstart", handleLineChartPointer, {passive:true});
-    lcWrap.addEventListener("touchmove", handleLineChartPointer, {passive:true});
-    lcWrap.addEventListener("touchend", hideLineChartTooltip);
+    [evoChart, weekChart].forEach(function(chart){
+      var lcWrap = document.getElementById(chart === evoChart ? "linechart-evo-wrap" : "linechart-week-wrap");
+      lcWrap.addEventListener("mousemove", chart.onPointer);
+      lcWrap.addEventListener("mouseleave", chart.onLeave);
+      lcWrap.addEventListener("touchstart", chart.onPointer, {passive:true});
+      lcWrap.addEventListener("touchmove", chart.onPointer, {passive:true});
+      lcWrap.addEventListener("touchend", chart.onLeave);
+    });
 
     renderReglas();
 
