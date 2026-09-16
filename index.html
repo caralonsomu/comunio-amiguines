@@ -205,10 +205,12 @@
   }
   .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
   .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line);}
-  .admin-grid{display:grid; grid-template-columns:1fr 70px 70px; gap:8px; align-items:center; margin-bottom:8px;}
+  .admin-grid{display:grid; grid-template-columns:1fr 90px; gap:8px; align-items:center; margin-bottom:8px;}
   .admin-grid.head{font-size:11px; text-transform:uppercase; color:var(--muted); font-weight:700;}
   .pay-grid{display:grid; grid-template-columns:1fr 150px; gap:8px; align-items:start; margin-bottom:10px;}
   .pay-cell{display:flex; flex-direction:column; gap:5px;}
+  .pay-total{font-size:12px; color:var(--muted);}
+  .pay-total strong{color:var(--ink); font-weight:800;}
   .conf-label{display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); font-weight:700; cursor:pointer;}
   .conf-label input{width:auto;}
   @media (max-width:640px){ .pay-grid{grid-template-columns:1fr 1fr;} .pay-grid > .team-cell{grid-column:1 / -1;} }
@@ -250,7 +252,7 @@
 
       <div class="card">
         <h2>Clasificación por puntos</h2>
-        <div class="sub">Suma de puntos Comunio en todas las jornadas jugadas</div>
+        <div class="sub">Puntos totales de Comunio, ajustados para coincidir con la clasificación general real (esta web todavía no tiene metidas jornada a jornada todas las jugadas)</div>
         <div class="barchart" id="barchart"></div>
       </div>
 
@@ -272,7 +274,7 @@
 
       <div class="card">
         <h2>El bote del grupo (para el viaje de fin de temporada)</h2>
-        <div class="sub">Son <strong>dos botes independientes que no se mezclan ni se suman</strong>: el de la temporada pasada es de los equipos que ya estaban entonces, y el de esta temporada es de los 8 equipos actuales — incluida <strong>Maravilla F.C.</strong>, que se incorporó este año y no formó parte del bote anterior.</div>
+        <div class="sub">Son <strong>dos botes independientes que no se mezclan ni se suman</strong>: el de la temporada pasada es de los equipos que ya estaban entonces, y el de esta temporada es de los 8 equipos actuales — incluida <strong>Maravilla F.C.</strong>, que se incorporó este año y no formó parte del bote anterior. El bote de esta temporada suma tanto lo liquidado de la clasificación como los Bizum ya confirmados — el dinero real cuenta para el bote aunque, dentro de Biwenger, sea presupuesto del juego de cada uno (ver Reglas).</div>
 
         <div style="font-size:17px; font-weight:800; color:var(--pitch); margin:18px 0 6px;">Bote de la temporada 2025/26 (anterior a Maravilla F.C.)</div>
         <div class="table-scroll">
@@ -372,7 +374,7 @@
         <h3>Los Bizum son otra cosa: presupuesto del juego, no deuda</h3>
         <p>Aparte de todo lo anterior, cualquiera puede meter dinero real por Bizum para <strong>comprar presupuesto ficticio dentro de Biwenger</strong> y poder fichar más jugadores. El cambio varía según el momento: normalmente 1€ = 1M, sube a 1,50€ = 1M si se hace en las 24h antes de una jornada estando en números rojos, y a 2€ = 1M la primera vez (o 3€ = 1M la segunda, ya no se puede una tercera vez) si se hace a mitad de jornada.</p>
         <p>Si el aporte se hace ya empezada la jornada (algo que solo se puede hacer dos veces en toda la temporada), el equipo puntúa con su alineación, pero esa semana no recibe ni el dinero ficticio de la jornada ni los premios individuales — el aporte solo sirve para poder puntuar. Agotadas esas dos veces, un equipo que empiece una jornada con saldo negativo ya no puntuará bajo ninguna circunstancia.</p>
-        <p><strong>Esto no tiene nada que ver con la deuda de la clasificación</strong>: son dos cuentas totalmente independientes que no se compensan entre sí — meter un Bizum no reduce lo que un equipo deba por su clasificación, ni al revés. Por eso en Resumen aparecen en dos tablas separadas.</p>
+        <p><strong>Esto no tiene nada que ver con la deuda de la clasificación</strong>: son dos cuentas totalmente independientes que no se compensan entre sí — meter un Bizum no reduce lo que un equipo deba por su clasificación, ni al revés. Por eso en Resumen aparecen en dos tablas separadas. Aun así, el dinero real de los Bizum ya confirmados sí que cuenta dentro del <strong>bote del grupo de esta temporada</strong> (ver la tarjeta correspondiente en Resumen), porque acaba siendo dinero real en manos del grupo.</p>
 
         <h3>Abono extraordinario de la jornada 19 (dinero ficticio)</h3>
         <p>Al terminar la jornada 19, Biwenger da a todos los equipos un abono general de <strong>10.000.000€</strong> ficticios. Además, se reparte un abono extra para achicar diferencias: cada equipo recibe <strong>100.000€ por cada punto</strong> que le separe del primer clasificado de ese momento (el líder no recibe extra, solo el abono general). Por ejemplo, si el líder tiene 1.100 puntos y otro equipo 950, ese equipo recibe 150 × 100.000€ = 15.000.000€ además del abono general. Todo esto es dinero ficticio dentro de Biwenger — no implica dinero real y no aparece en las cuentas de esta web.</p>
@@ -420,7 +422,7 @@
 
         <div class="card">
           <h2>Actualizar una jornada</h2>
-          <div class="sub">Elige la jornada e introduce la posición y los puntos de cada equipo</div>
+          <div class="sub">Elige la jornada e introduce los puntos de cada equipo — la posición se calcula sola según los puntos, no hace falta introducirla.</div>
           <select id="jornada-select" style="max-width:320px; margin-bottom:14px;"></select>
           <div id="jornada-form"></div>
           <div class="save-row">
@@ -431,7 +433,7 @@
 
         <div class="card">
           <h2>Liquidación de la clasificación</h2>
-          <div class="sub">Cuánto se le ha liquidado (pagado) ya a cada equipo de su deuda por clasificación, en total acumulado hasta hoy. Esto es independiente de los Bizum de presupuesto del juego (siguiente tarjeta).</div>
+          <div class="sub">Se muestra lo que ya se le ha liquidado a cada equipo hasta hoy. Introduce solo <strong>lo que se liquida ahora</strong> — se suma automáticamente a lo acumulado, no hace falta escribir el total de nuevo. Esto es independiente de los Bizum de presupuesto del juego (siguiente tarjeta).</div>
           <div id="settle-form"></div>
           <div class="save-row">
             <button class="btn" id="save-settle">Guardar liquidación</button>
@@ -441,7 +443,7 @@
 
         <div class="card">
           <h2>Bizum (presupuesto del juego)</h2>
-          <div class="sub">Cuánto ha metido cada equipo por Bizum para tener más presupuesto en Biwenger — esto NO es la deuda de la clasificación, que se liquida en la tarjeta de arriba.</div>
+          <div class="sub">Se muestra cuánto ha metido cada equipo hasta hoy. Introduce solo <strong>lo que se acaba de meter ahora</strong> — se suma automáticamente a lo acumulado, no hace falta escribir el total de nuevo. Esto NO es la deuda de la clasificación, que se liquida en la tarjeta de arriba.</div>
           <div id="pay-form"></div>
           <div class="save-row">
             <button class="btn" id="save-pagos">Guardar pagos</button>
@@ -496,6 +498,21 @@ const FIREBASE_CONFIG = {
   var COST_TABLE = [0, 1, 2, 3, 4, 5, 7, 8.5]; // index = posicion-1
   var THRESHOLD_PTS = 40;
   var PENALTY = 0.5;
+  // Ajuste de puntos para que la CLASIFICACIÓN GENERAL (puntos totales y orden)
+  // coincida con la clasificación real de Comunio a fecha 16/09/2026, ya que a
+  // esta web todavía le faltan jornadas por introducir una a una (la 5, y las
+  // jugadas después de la 6). Es puramente para que el ranking de puntos sea
+  // correcto — NO afecta a lo que debe pagar cada equipo (eso solo depende de
+  // las jornadas que sí están introducidas en Admin, con su posición y coste).
+  // OJO al ir introduciendo esas jornadas que faltan en Admin: hay que IR
+  // BAJANDO el número de aquí abajo en la misma cantidad de puntos que se
+  // introduzcan, para no contarlos dos veces (una por el ajuste y otra por la
+  // jornada ya introducida). Cuando todas las jornadas reales estén metidas,
+  // este ajuste debería quedar en 0 para todos los equipos.
+  var POINTS_ADJUSTMENT = {
+    carlosklop: 76, samaritanas: 68, pedrindes: 40, arroz: 71,
+    jardinerito: 51, maravilla: 56, derposo: 46, shiquinino: 43
+  };
   // Porcentaje de clausula segun el valor de mercado del jugador (normativa oficial,
   // apdo. 3.4). Puramente informativo: no afecta a ninguna cuenta de esta web.
   var CLAUSE_TABLE = [
@@ -678,6 +695,10 @@ const FIREBASE_CONFIG = {
       });
     });
 
+    // clasificación general: se suma el ajuste para que coincida con la
+    // clasificación real (ver POINTS_ADJUSTMENT). No afecta a lo que se debe.
+    TEAMS.forEach(function(t){ totals[t.slug].points += POINTS_ADJUSTMENT[t.slug] || 0; });
+
     var out = TEAMS.map(function(t){
       var tt = totals[t.slug];
       var pay = paymentsState[t.slug] || {amount:0, confirmed:false, confirmedAt:null};
@@ -741,8 +762,9 @@ const FIREBASE_CONFIG = {
     var totals = computeTeamTotals();
     var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
     var totalBizum = totals.reduce(function(s,t){return s+t.recibidoBizum;},0);
+    var totalBizumConfirmado = totals.reduce(function(s,t){return s + (t.confirmState==="ok" ? t.recibidoBizum : 0);},0);
     var totalLiquidado = totals.reduce(function(s,t){return s+t.liquidado;},0);
-    var boteEstaTemporada = totalLiquidado - PREMIUM_COST;
+    var boteEstaTemporada = totalLiquidado + totalBizumConfirmado - PREMIUM_COST;
     var maxJ = maxPlayedJornada();
     var lider = totals[0];
 
@@ -794,8 +816,9 @@ const FIREBASE_CONFIG = {
 
     var boteRows = [
       ["Liquidado por la clasificación esta temporada (2026/27)", euros(totalLiquidado)],
+      ["Bizum confirmados esta temporada", "+"+euros(totalBizumConfirmado)],
       ["Coste real de la suscripción a Biwenger Premium", "−"+euros(PREMIUM_COST)],
-      ["Bote acumulado esta temporada (liquidado − Premium)", euros(boteEstaTemporada)]
+      ["Bote acumulado esta temporada (liquidado + Bizum confirmados − Premium)", euros(boteEstaTemporada)]
     ];
     document.querySelector("#tbl-bote tbody").innerHTML = boteRows.map(function(row, i){
       var strong = i === boteRows.length-1 ? ' style="font-weight:800;"' : '';
@@ -938,12 +961,11 @@ const FIREBASE_CONFIG = {
       '<input type="checkbox" id="jornada-incomplete" '+(jd.incomplete?"checked":"")+' /> ' +
       'Jornada parcial (todavía falta algún partido por jugar)' +
       '</label>';
-    rows += '<div class="admin-grid head"><div>Equipo</div><div>Pos.</div><div>Puntos</div></div>';
+    rows += '<div class="admin-grid head"><div>Equipo</div><div>Puntos</div></div>';
     rows += TEAMS.map(function(t){
       var r = jd.results[t.slug] || {};
       return '<div class="admin-grid">' +
         '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
-        '<input type="number" min="1" max="8" id="pos-'+t.slug+'" value="'+(r.pos!=null?r.pos:"")+'" />' +
         '<input type="number" id="pts-'+t.slug+'" value="'+(r.pts!=null?r.pts:"")+'" />' +
         '</div>';
     }).join("");
@@ -953,10 +975,12 @@ const FIREBASE_CONFIG = {
   function buildPayForm(){
     document.getElementById("pay-form").innerHTML = TEAMS.map(function(t){
       var p = paymentsState[t.slug] || {};
+      var total = p.amount!=null ? p.amount : 0;
       return '<div class="pay-grid">' +
         '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
         '<div class="pay-cell">' +
-          '<input type="number" min="0" step="0.5" id="pay-'+t.slug+'" value="'+(p.amount!=null?p.amount:0)+'" />' +
+          '<div class="pay-total">Acumulado: <strong>'+euros(total)+'</strong></div>' +
+          '<input type="number" min="0" step="0.5" placeholder="Añadir importe" id="pay-add-'+t.slug+'" value="" />' +
           '<label class="conf-label"><input type="checkbox" id="conf-'+t.slug+'" '+(p.confirmed?"checked":"")+' /> confirmado</label>' +
         '</div>' +
         '</div>';
@@ -966,9 +990,13 @@ const FIREBASE_CONFIG = {
   function buildSettleForm(){
     document.getElementById("settle-form").innerHTML = TEAMS.map(function(t){
       var s = settlementsState[t.slug] || {};
+      var total = s.amount!=null ? s.amount : 0;
       return '<div class="pay-grid">' +
         '<div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div>' +
-        '<div class="pay-cell"><input type="number" min="0" step="0.5" id="settle-'+t.slug+'" value="'+(s.amount!=null?s.amount:0)+'" /></div>' +
+        '<div class="pay-cell">' +
+          '<div class="pay-total">Liquidado hasta ahora: <strong>'+euros(total)+'</strong></div>' +
+          '<input type="number" min="0" step="0.5" placeholder="Añadir importe" id="settle-add-'+t.slug+'" value="" />' +
+        '</div>' +
         '</div>';
     }).join("");
   }
@@ -981,23 +1009,29 @@ const FIREBASE_CONFIG = {
 
   async function saveJornada(){
     var n = parseInt(document.getElementById("jornada-select").value,10);
-    var results = {};
+    var pts = {};
     TEAMS.forEach(function(t){
-      var pos = document.getElementById("pos-"+t.slug).value;
-      var pts = document.getElementById("pts-"+t.slug).value;
-      results[t.slug] = {
-        pos: pos==="" ? null : parseInt(pos,10),
-        pts: pts==="" ? null : parseFloat(pts)
-      };
+      var v = document.getElementById("pts-"+t.slug).value;
+      pts[t.slug] = v==="" ? null : parseFloat(v);
     });
+    // la posicion se calcula sola segun los puntos (mas puntos = mejor puesto);
+    // en caso de empate, se ordena segun el orden de TEAMS (uso interno, no
+    // debería pasar con puntos reales de Comunio)
+    var ranked = TEAMS.filter(function(t){ return pts[t.slug] != null; }).sort(function(a,b){
+      if(pts[b.slug] !== pts[a.slug]) return pts[b.slug] - pts[a.slug];
+      return TEAMS.indexOf(a) - TEAMS.indexOf(b);
+    });
+    var results = {};
+    TEAMS.forEach(function(t){ results[t.slug] = {pos:null, pts:pts[t.slug]}; });
+    ranked.forEach(function(t, i){ results[t.slug].pos = i+1; });
     var incomplete = document.getElementById("jornada-incomplete").checked;
     var doc = {incomplete: incomplete, results:results};
+    jornadasState[String(n)] = doc; // refleja el cambio ya mismo, aunque tarde en llegar el snapshot
     if(db){
       try{ await db.doc("jornadas/"+n).set(doc); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); }
-    } else {
-      jornadasState[String(n)] = doc;
-      renderAllLive();
     }
+    renderAllLive();
+    buildJornadaForm();
     flashSaved("save-jornada-msg");
   }
 
@@ -1005,22 +1039,23 @@ const FIREBASE_CONFIG = {
     var writes = [];
     var nowIso = new Date().toISOString();
     TEAMS.forEach(function(t){
-      var amount = parseFloat(document.getElementById("pay-"+t.slug).value) || 0;
+      var add = parseFloat(document.getElementById("pay-add-"+t.slug).value) || 0;
       var conf = document.getElementById("conf-"+t.slug).checked;
-      var prev = paymentsState[t.slug] || {};
+      var prev = paymentsState[t.slug] || {amount:0, confirmed:false, confirmedAt:null};
+      var amount = (Number(prev.amount)||0) + add;
       var doc = {
         amount: amount,
         confirmed: conf,
         confirmedAt: conf ? (prev.confirmedAt || nowIso) : null
       };
+      paymentsState[t.slug] = doc; // refleja el cambio ya mismo, aunque tarde en llegar el snapshot
       if(db){
         writes.push(db.doc("payments/"+t.slug).set(doc));
-      } else {
-        paymentsState[t.slug] = doc;
       }
     });
     if(db){ try{ await Promise.all(writes); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); } }
-    else { renderAllLive(); }
+    renderAllLive();
+    buildPayForm();
     flashSaved("save-pagos-msg");
   }
 
@@ -1028,19 +1063,21 @@ const FIREBASE_CONFIG = {
     var writes = [];
     var nowIso = new Date().toISOString();
     TEAMS.forEach(function(t){
-      var amount = parseFloat(document.getElementById("settle-"+t.slug).value) || 0;
+      var add = parseFloat(document.getElementById("settle-add-"+t.slug).value) || 0;
+      var prev = settlementsState[t.slug] || {};
+      var amount = (Number(prev.amount)||0) + add;
       var doc = {
         amount: amount,
-        updatedAt: nowIso
+        updatedAt: add !== 0 ? nowIso : (prev.updatedAt || null)
       };
+      settlementsState[t.slug] = doc; // refleja el cambio ya mismo, aunque tarde en llegar el snapshot
       if(db){
         writes.push(db.doc("settlements/"+t.slug).set(doc));
-      } else {
-        settlementsState[t.slug] = doc;
       }
     });
     if(db){ try{ await Promise.all(writes); }catch(e){ console.error(e); alert("No se pudo guardar. Revisa la consola y la configuración de Firebase."); } }
-    else { renderAllLive(); }
+    renderAllLive();
+    buildSettleForm();
     flashSaved("save-settle-msg");
   }
 
