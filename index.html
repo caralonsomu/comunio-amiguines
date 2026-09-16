@@ -1093,14 +1093,14 @@ const FIREBASE_CONFIG = {
     });
     lines.push("Total pendiente de liquidar: " + euros(totalPendiente));
     lines.push("");
-    lines.push("💸 *Bizum (presupuesto extra, aparte de la clasificación):*");
+    lines.push("💸 *Bizum:*");
     totals.forEach(function(t){
       var estado = t.confirmState === "ok" ? "✔ confirmado" : (t.confirmState === "pending" ? "sin confirmar" : "—");
       lines.push(t.name + ": " + euros(t.recibidoBizum) + (t.recibidoBizum > 0.001 ? " (" + estado + ")" : ""));
     });
     lines.push("");
     lines.push("🎒 *Bote del grupo (para el viaje):*");
-    lines.push("Esta temporada (2026/27): " + euros(boteEstaTemporada));
+    lines.push("Esta temporada (2026/27): " + euros(boteEstaTemporada) + " (pendiente de liquidar " + euros(totalPendiente) + ")");
     lines.push("Temporada pasada (2025/26): " + euros(BOTE_ANTERIOR));
 
     return lines.join("\n");
