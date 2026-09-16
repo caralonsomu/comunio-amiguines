@@ -114,7 +114,7 @@
   .card .sub{color:var(--muted); font-size:14px; margin-bottom:14px;}
 
   .stat-grid{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;
   }
   .stat{
     background:var(--surface); border:1px solid var(--line); border-radius:14px;
@@ -256,7 +256,7 @@
 
       <div class="card">
         <h2>Cuentas de cada equipo</h2>
-        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones + cuota) y lo que ya se le ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong> — son cosas distintas, ver la tabla de abajo. <span style="color:var(--gold);">*</span> DER POSO pagó 36€ de Biwenger Premium, lo que equivale a 4,5€ por jugador — se incluye en esta tabla.</div>
+        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones) y lo que ya se le ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong> — son cosas distintas, ver la tabla de abajo.</div>
         <div class="table-scroll">
           <table class="data" id="tbl-cuentas">
             <thead>
@@ -265,6 +265,27 @@
                 <th class="num">Debe</th><th class="num">Liquidado</th><th class="num">Pendiente</th>
               </tr>
             </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>El bote del grupo (para el viaje de fin de temporada)</h2>
+        <div class="sub">Son <strong>dos botes independientes que no se mezclan ni se suman</strong>: el de la temporada pasada es de los equipos que ya estaban entonces, y el de esta temporada es de los 8 equipos actuales — incluida <strong>Maravilla F.C.</strong>, que se incorporó este año y no formó parte del bote anterior.</div>
+
+        <div style="font-size:17px; font-weight:800; color:var(--pitch); margin:18px 0 6px;">Bote de la temporada 2025/26 (anterior a Maravilla F.C.)</div>
+        <div class="table-scroll">
+          <table class="data mini-table">
+            <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
+            <tbody id="tbl-bote-anterior"></tbody>
+          </table>
+        </div>
+
+        <div style="font-size:17px; font-weight:800; color:var(--pitch); margin:22px 0 6px;">Bote de esta temporada (2026/27)</div>
+        <div class="table-scroll">
+          <table class="data mini-table" id="tbl-bote">
+            <thead><tr><th>Concepto</th><th class="num">Importe</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -308,8 +329,8 @@
         <h3>Configuración inicial de la liga</h3>
         <p>La temporada 2026/27 empezó el lunes 3 de agosto de 2026. Todos los equipos arrancaron con la plantilla vacía y un saldo inicial de <strong>50.000.000€</strong> ficticios, sin ningún jugador asignado — cada uno formó su equipo a base de fichajes en el mercado. Hasta el inicio de la jornada 1 se incorporaban 25 jugadores libres al mercado cada día; desde entonces se incorporan 10 al día.</p>
 
-        <h3>Cuota inicial: el pozo de Biwenger Premium</h3>
-        <p><strong>Der Poso</strong> adelantó los <strong>36€</strong> de la suscripción a Biwenger Premium para todo el grupo. Para devolvérselo, cada uno de los 8 equipos aporta una <strong>cuota inicial de 4,5€</strong> (36€ ÷ 8), que se suma a lo que deba por su clasificación. Como Der Poso ya puso ese dinero de su bolsillo, esta cuota se le descuenta a él en vez de cobrársela.</p>
+        <h3>Cuota de entrada</h3>
+        <p>Según la normativa, cada miembro debía abonar una cuota inicial de entrada de <strong>5,00€</strong>, independiente del resto de aportaciones de la temporada. En la práctica, el grupo no ha cobrado esta cuota a cada equipo por separado: la suscripción a Biwenger Premium (30€ reales) se ha pagado directamente con el bote acumulado del grupo, sin repercutirla a nadie individualmente — el detalle de esa cuenta está en la tarjeta <strong>"El bote del grupo"</strong>, en Resumen.</p>
 
         <h3>Lo que se paga cada jornada</h3>
         <p>Cada jornada, los 8 equipos se ordenan según su posición en esa semana (puntos de Comunio). Cuanto peor la posición, más se paga, según esta tabla:</p>
@@ -491,10 +512,11 @@ const FIREBASE_CONFIG = {
     ["De 100 a 110 millones","20%"], ["De 120 a 130 millones","19%"], ["De 140 a 150 millones","18%"],
     ["De 160 a 170 millones","17%"], ["De 180 a 190 millones","16%"], ["Más de 200 millones","15%"]
   ];
-  // Cuota inicial (36€ del pozo de Biwenger Premium ÷ 8 equipos). A Der Poso,
-  // que adelantó los 36€, se le descuenta en vez de cobrársela (ver POZO_PREMIUM).
-  var CUOTA_INICIAL = 4.5;
-  var POZO_PREMIUM = 36;
+  // La suscripción a Biwenger Premium de esta temporada costó 30€ reales y se
+  // pagó directamente del bote del grupo (no se le carga a ningún equipo).
+  var PREMIUM_COST = 30;
+  // Bote que quedó acumulado de la temporada 2025/26, guardado para el viaje.
+  var BOTE_ANTERIOR = 1474;
   // Jornadas dobles (Clásico y Derbi sevillano): se duplican tanto el coste
   // por posición como la penalización por baja puntuación.
   var DOUBLES = { 10:1, 13:1, 23:2, 35:2 }; // jornada -> vuelta en la que cae (uso interno)
@@ -660,11 +682,10 @@ const FIREBASE_CONFIG = {
       var tt = totals[t.slug];
       var pay = paymentsState[t.slug] || {amount:0, confirmed:false, confirmedAt:null};
       var settle = settlementsState[t.slug] || {};
-      var pozoDescuento = (t.slug === "derposo") ? POZO_PREMIUM : 0;
 
-      // -- deuda de clasificación (independiente de los Bizum) --
-      tt.pozoDescuento = pozoDescuento;
-      tt.totalDue = tt.due + CUOTA_INICIAL - pozoDescuento;
+      // -- deuda de clasificación (independiente de los Bizum): solo posiciones
+      // y penalizaciones, sin ninguna cuota fija por equipo --
+      tt.totalDue = tt.due;
       tt.liquidado = Number(settle.amount) || 0;
       tt.liquidadoAt = settle.updatedAt || null;
       tt.pendiente = tt.totalDue - tt.liquidado;
@@ -720,11 +741,15 @@ const FIREBASE_CONFIG = {
     var totals = computeTeamTotals();
     var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
     var totalBizum = totals.reduce(function(s,t){return s+t.recibidoBizum;},0);
+    var totalLiquidado = totals.reduce(function(s,t){return s+t.liquidado;},0);
+    var boteEstaTemporada = totalLiquidado - PREMIUM_COST;
     var maxJ = maxPlayedJornada();
     var lider = totals[0];
 
     var stats = [
       {label:"Pendiente de liquidar", value:euros(totalPendiente), cls: totalPendiente>0 ? "danger":"pitch"},
+      {label:"Bote esta temporada (2026/27)", value:euros(boteEstaTemporada), cls: boteEstaTemporada<0 ? "danger":"pitch"},
+      {label:"Bote temporada 2025/26 (viaje)", value:euros(BOTE_ANTERIOR), cls:"pitch"},
       {label:"Bizum ingresado (presupuesto)", value:euros(totalBizum), cls:"pitch"},
       {label:"Jornadas jugadas", value:maxJ + " / " + TOTAL_JORNADAS, cls:""},
       {label:"Líder de puntos", value: lider ? lider.name.split(" ").slice(0,2).join(" ") : "–", cls:"gold"}
@@ -750,19 +775,32 @@ const FIREBASE_CONFIG = {
     var tbody = totals.map(function(t, i){
       var pendCls = t.pendiente > 0.001 ? "pend-due" : "pend-ok";
       var pendTxt = t.pendiente > 0.001 ? euros(t.pendiente) : "Al día";
-      var potNote = t.pozoDescuento ? ' <span title="Incluye -'+euros(t.pozoDescuento)+' del pozo de Biwenger Premium" style="color:var(--gold); cursor:help;">*</span>' : '';
       var liqTitle = t.liquidadoAt ? ' title="Última actualización: '+new Date(t.liquidadoAt).toLocaleDateString("es-ES")+'"' : '';
 
       return '<tr data-rank="'+(i+1)+'">' +
         '<td><span class="rank-badge">'+(i+1)+'</span></td>' +
         '<td><div class="team-cell"><span class="dot" style="background:'+t.color+'"></span>'+t.name+'</div></td>' +
         '<td class="num">'+t.points+'</td>' +
-        '<td class="num">'+euros(t.totalDue)+potNote+'</td>' +
+        '<td class="num">'+euros(t.totalDue)+'</td>' +
         '<td class="num"'+liqTitle+'>'+euros(t.liquidado)+'</td>' +
         '<td class="num '+pendCls+'">'+pendTxt+'</td>' +
         '</tr>';
     }).join("");
     document.querySelector("#tbl-cuentas tbody").innerHTML = tbody;
+
+    // bote del grupo: dos botes independientes, que NUNCA se suman entre sí
+    document.querySelector("#tbl-bote-anterior").innerHTML =
+      '<tr><td>Guardado de la temporada pasada, para el viaje</td><td class="num">'+euros(BOTE_ANTERIOR)+'</td></tr>';
+
+    var boteRows = [
+      ["Liquidado por la clasificación esta temporada (2026/27)", euros(totalLiquidado)],
+      ["Coste real de la suscripción a Biwenger Premium", "−"+euros(PREMIUM_COST)],
+      ["Bote acumulado esta temporada (liquidado − Premium)", euros(boteEstaTemporada)]
+    ];
+    document.querySelector("#tbl-bote tbody").innerHTML = boteRows.map(function(row, i){
+      var strong = i === boteRows.length-1 ? ' style="font-weight:800;"' : '';
+      return '<tr'+strong+'><td>'+row[0]+'</td><td class="num">'+row[1]+'</td></tr>';
+    }).join("");
 
     // tabla de Bizum (presupuesto del juego, independiente de la deuda)
     var bizumBody = totals.map(function(t){
