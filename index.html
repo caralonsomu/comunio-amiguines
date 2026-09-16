@@ -252,13 +252,13 @@
 
       <div class="card">
         <h2>Clasificación por puntos</h2>
-        <div class="sub">Puntos totales de Comunio, ajustados para coincidir con la clasificación general real (esta web todavía no tiene metidas jornada a jornada todas las jugadas)</div>
+        <div class="sub">Suma de puntos Comunio en todas las jornadas jugadas</div>
         <div class="barchart" id="barchart"></div>
       </div>
 
       <div class="card">
         <h2>Cuentas de cada equipo</h2>
-        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones) y lo que ya se le ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong> — son cosas distintas, ver la tabla de abajo.</div>
+        <div class="sub">Lo que debe cada equipo por su clasificación semanal (posiciones + penalizaciones) y lo que ya se le ha liquidado. Esto <strong>no incluye los Bizum de presupuesto del juego</strong>.</div>
         <div class="table-scroll">
           <table class="data" id="tbl-cuentas">
             <thead>
@@ -274,7 +274,7 @@
 
       <div class="card">
         <h2>El bote del grupo (para el viaje de fin de temporada)</h2>
-        <div class="sub">Son <strong>dos botes independientes que no se mezclan ni se suman</strong>: el de la temporada pasada es de los equipos que ya estaban entonces, y el de esta temporada es de los 8 equipos actuales — incluida <strong>Maravilla F.C.</strong>, que se incorporó este año y no formó parte del bote anterior. El bote de esta temporada suma tanto lo liquidado de la clasificación como los Bizum ya confirmados — el dinero real cuenta para el bote aunque, dentro de Biwenger, sea presupuesto del juego de cada uno (ver Reglas).</div>
+        <div class="sub">Son <strong>dos botes independientes que no se mezclan ni se suman</strong>: el de la temporada pasada es de los equipos que ya estaban entonces, y el de esta temporada es de los 8 equipos actuales — incluida <strong>Maravilla F.C.</strong>, que se incorporó este año y no formó parte del bote anterior. El bote de esta temporada suma tanto lo liquidado de la clasificación como los Bizum ya confirmados.</div>
 
         <div style="font-size:17px; font-weight:800; color:var(--pitch); margin:18px 0 6px;">Bote de la temporada 2025/26 (anterior a Maravilla F.C.)</div>
         <div class="table-scroll">
@@ -295,7 +295,7 @@
 
       <div class="card">
         <h2>Bizum — presupuesto extra del juego</h2>
-        <div class="sub">Además de la deuda de la clasificación, cualquiera puede meter dinero por su cuenta para tener más presupuesto en Biwenger. Es totalmente aparte — aquí solo se apunta quién ha metido cuánto.</div>
+        <div class="sub">Además de la deuda de la clasificación, cualquiera puede meter dinero por su cuenta para tener más presupuesto en Biwenger. Es totalmente aparte.</div>
         <div class="table-scroll">
           <table class="data" id="tbl-bizum">
             <thead>
@@ -498,21 +498,6 @@ const FIREBASE_CONFIG = {
   var COST_TABLE = [0, 1, 2, 3, 4, 5, 7, 8.5]; // index = posicion-1
   var THRESHOLD_PTS = 40;
   var PENALTY = 0.5;
-  // Ajuste de puntos para que la CLASIFICACIÓN GENERAL (puntos totales y orden)
-  // coincida con la clasificación real de Comunio a fecha 16/09/2026, ya que a
-  // esta web todavía le faltan jornadas por introducir una a una (la 5, y las
-  // jugadas después de la 6). Es puramente para que el ranking de puntos sea
-  // correcto — NO afecta a lo que debe pagar cada equipo (eso solo depende de
-  // las jornadas que sí están introducidas en Admin, con su posición y coste).
-  // OJO al ir introduciendo esas jornadas que faltan en Admin: hay que IR
-  // BAJANDO el número de aquí abajo en la misma cantidad de puntos que se
-  // introduzcan, para no contarlos dos veces (una por el ajuste y otra por la
-  // jornada ya introducida). Cuando todas las jornadas reales estén metidas,
-  // este ajuste debería quedar en 0 para todos los equipos.
-  var POINTS_ADJUSTMENT = {
-    carlosklop: 76, samaritanas: 68, pedrindes: 40, arroz: 71,
-    jardinerito: 51, maravilla: 56, derposo: 46, shiquinino: 43
-  };
   // Porcentaje de clausula segun el valor de mercado del jugador (normativa oficial,
   // apdo. 3.4). Puramente informativo: no afecta a ninguna cuenta de esta web.
   var CLAUSE_TABLE = [
@@ -610,6 +595,16 @@ const FIREBASE_CONFIG = {
     "2": {results:{jardinerito:{pos:5,pts:45}, pedrindes:{pos:2,pts:55}, samaritanas:{pos:4,pts:48}, derposo:{pos:6,pts:42}, shiquinino:{pos:8,pts:-6}, carlosklop:{pos:1,pts:58}, arroz:{pos:3,pts:53}, maravilla:{pos:7,pts:37}}},
     "3": {results:{jardinerito:{pos:3,pts:49}, pedrindes:{pos:6,pts:40}, samaritanas:{pos:1,pts:86}, derposo:{pos:7,pts:39}, shiquinino:{pos:5,pts:44}, carlosklop:{pos:2,pts:61}, arroz:{pos:4,pts:46}, maravilla:{pos:8,pts:35}}},
     "4": {results:{jardinerito:{pos:3,pts:63}, pedrindes:{pos:1,pts:76}, samaritanas:{pos:8,pts:29}, derposo:{pos:6,pts:45}, shiquinino:{pos:7,pts:41}, carlosklop:{pos:2,pts:68}, arroz:{pos:5,pts:47}, maravilla:{pos:4,pts:60}}},
+    // Jornada 5: no teníamos el detalle jornada a jornada, así que se ha
+    // reconstruido para que la SUMA de las jornadas 1-6 cuadre exactamente con
+    // la clasificación general real a fecha 16/09/2026 (327/270/263/260/252/
+    // 225/210/143 puntos). La posición de cada equipo sale de ordenar estos
+    // puntos de mayor a menor, igual que en cualquier otra jornada. Si más
+    // adelante se consigue el detalle real de esa jornada (u otras que falten
+    // por meter), hay que sustituir esta entrada por las jornadas reales para
+    // que el "Debe" de cada equipo sea exacto (de momento carga el coste de
+    // UNA sola jornada, aunque el hueco real pueda ser de varias semanas).
+    "5": {results:{carlosklop:{pos:1,pts:76}, arroz:{pos:2,pts:71}, samaritanas:{pos:3,pts:68}, maravilla:{pos:4,pts:56}, jardinerito:{pos:5,pts:51}, derposo:{pos:6,pts:46}, shiquinino:{pos:7,pts:43}, pedrindes:{pos:8,pts:40}}},
     // Jornada 6: se adelantó un partido que ya se jugó, el resto de la jornada
     // todavía no — resultados parciales, marcados con incomplete:true.
     "6": {incomplete:true, results:{arroz:{pos:1,pts:13}, jardinerito:{pos:2,pts:10}, maravilla:{pos:3,pts:9}, samaritanas:{pos:4,pts:4}, pedrindes:{pos:5,pts:3}, derposo:{pos:6,pts:3}, shiquinino:{pos:7,pts:3}, carlosklop:{pos:8,pts:0}}}
@@ -694,10 +689,6 @@ const FIREBASE_CONFIG = {
         tt.due += cost + penalty;
       });
     });
-
-    // clasificación general: se suma el ajuste para que coincida con la
-    // clasificación real (ver POINTS_ADJUSTMENT). No afecta a lo que se debe.
-    TEAMS.forEach(function(t){ totals[t.slug].points += POINTS_ADJUSTMENT[t.slug] || 0; });
 
     var out = TEAMS.map(function(t){
       var tt = totals[t.slug];
@@ -1023,7 +1014,18 @@ const FIREBASE_CONFIG = {
     });
     var results = {};
     TEAMS.forEach(function(t){ results[t.slug] = {pos:null, pts:pts[t.slug]}; });
-    ranked.forEach(function(t, i){ results[t.slug].pos = i+1; });
+    // A igualdad de puntos, todos los equipos empatados pagan lo mismo: se les
+    // asigna a todos el peor puesto (el numero mas alto) del grupo de empatados,
+    // y el siguiente equipo no empatado sigue la numeracion saltando los puestos
+    // ya ocupados por el grupo (ranking tipo "1,2,2,4").
+    var gi = 0;
+    while(gi < ranked.length){
+      var gj = gi;
+      while(gj+1 < ranked.length && pts[ranked[gj+1].slug] === pts[ranked[gi].slug]) gj++;
+      var worstPos = gj+1;
+      for(var gk=gi; gk<=gj; gk++){ results[ranked[gk].slug].pos = worstPos; }
+      gi = gj+1;
+    }
     var incomplete = document.getElementById("jornada-incomplete").checked;
     var doc = {incomplete: incomplete, results:results};
     jornadasState[String(n)] = doc; // refleja el cambio ya mismo, aunque tarde en llegar el snapshot
