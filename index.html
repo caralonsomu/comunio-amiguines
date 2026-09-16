@@ -411,6 +411,16 @@
             <button class="btn" id="btn-copy-whatsapp">Copiar para WhatsApp</button>
             <span class="save-msg" id="copy-whatsapp-msg">Copiado ✓</span>
           </div>
+
+          <div class="save-row" style="margin-top:6px;">
+            <button class="btn ghost" id="btn-generate-image">Generar imagen para WhatsApp</button>
+            <button class="btn ghost" id="btn-copy-image" style="display:none;">Copiar imagen</button>
+            <button class="btn ghost" id="btn-download-image" style="display:none;">Descargar imagen</button>
+            <span class="save-msg" id="image-msg">Copiado ✓</span>
+          </div>
+          <div id="whatsapp-image-wrap" style="display:none; margin-top:14px;">
+            <img id="whatsapp-image-preview" style="max-width:100%; border-radius:10px; border:1px solid var(--line); display:block;" alt="Resumen para WhatsApp en formato imagen" />
+          </div>
         </div>
 
         <div class="card">
@@ -814,7 +824,11 @@ const FIREBASE_CONFIG = {
       ["Liquidado por la clasificación esta temporada (2026/27)", euros(totalLiquidado)],
       ["Bizum confirmados esta temporada", "+"+euros(totalBizumConfirmado)],
       ["Coste real de la suscripción a Biwenger Premium", "−"+euros(PREMIUM_COST)],
-      ["Bote acumulado esta temporada (liquidado + Bizum confirmados − Premium)", euros(boteEstaTemporada)]
+      [
+        "Bote acumulado esta temporada (liquidado + Bizum confirmados − Premium)" +
+        '<div style="font-weight:400; color:var(--muted); font-size:12px; margin-top:3px;">Pendiente de liquidar a tesorería: <strong style="color:var(--ink);">'+euros(totalPendiente)+'</strong> (no incluido todavía en el bote)</div>',
+        euros(boteEstaTemporada)
+      ]
     ];
     document.querySelector("#tbl-bote tbody").innerHTML = boteRows.map(function(row, i){
       var strong = i === boteRows.length-1 ? ' style="font-weight:800;"' : '';
@@ -1070,13 +1084,24 @@ const FIREBASE_CONFIG = {
   }
 
   // ---------- resumen para WhatsApp ----------
-  function buildWhatsappText(){
+  function computeSummaryData(){
     var totals = computeTeamTotals();
     var maxJ = maxPlayedJornada();
     var totalPendiente = totals.reduce(function(s,t){return s + Math.max(0,t.pendiente);},0);
     var totalBizumConfirmado = totals.reduce(function(s,t){return s + (t.confirmState==="ok" ? t.recibidoBizum : 0);},0);
     var totalLiquidado = totals.reduce(function(s,t){return s+t.liquidado;},0);
     var boteEstaTemporada = totalLiquidado + totalBizumConfirmado - PREMIUM_COST;
+    return {
+      totals:totals, maxJ:maxJ, totalPendiente:totalPendiente,
+      totalBizumConfirmado:totalBizumConfirmado, totalLiquidado:totalLiquidado,
+      boteEstaTemporada:boteEstaTemporada
+    };
+  }
+
+  function buildWhatsappText(){
+    var d = computeSummaryData();
+    var totals = d.totals, maxJ = d.maxJ, totalPendiente = d.totalPendiente,
+      boteEstaTemporada = d.boteEstaTemporada;
 
     var lines = [];
     lines.push("📊 *Comunio Amiguines 26/27* — Jornada " + (maxJ || 0) + "/" + TOTAL_JORNADAS);
@@ -1100,8 +1125,8 @@ const FIREBASE_CONFIG = {
     });
     lines.push("");
     lines.push("🎒 *Bote del grupo (para el viaje):*");
-    lines.push("Esta temporada (2026/27): " + euros(boteEstaTemporada) + " (pendiente de liquidar " + euros(totalPendiente) + ")");
-    lines.push("Temporada pasada (2025/26): " + euros(BOTE_ANTERIOR));
+    lines.push("Esta temporada (2026/27): " + euros(boteEstaTemporada) + " (pendiente de liquidar a tesorería " + euros(totalPendiente) + ").");
+    lines.push("Temporada pasada (2025/26): " + euros(BOTE_ANTERIOR) + ".");
 
     return lines.join("\n");
   }
@@ -1123,6 +1148,264 @@ const FIREBASE_CONFIG = {
       el.select();
       flashSaved("copy-whatsapp-msg");
     }
+  }
+
+  // ---------- resumen para WhatsApp, en imagen (tablas de verdad) ----------
+  var whatsappImageBlob = null;
+
+  function resolveColor(v){
+    if(typeof v === "string" && v.indexOf("var(") === 0){
+      var name = v.slice(4, -1).trim();
+      var val = getComputedStyle(document.documentElement).getPropertyValue(name);
+      return (val || "#000").trim();
+    }
+    return v;
+  }
+
+  function fitFont(ctx, text, maxWidth, weight, family, startSize, minSize){
+    var size = startSize;
+    while(size > minSize){
+      ctx.font = weight + " " + size + "px " + family;
+      if(ctx.measureText(text).width <= maxWidth) break;
+      size -= 1;
+    }
+    return weight + " " + size + "px " + family;
+  }
+
+  async function buildWhatsappImageBlob(){
+    try{ await Promise.race([document.fonts.ready, new Promise(function(res){ setTimeout(res, 1200); })]); }catch(e){}
+
+    var d = computeSummaryData();
+    var totals = d.totals, maxJ = d.maxJ, totalPendiente = d.totalPendiente,
+      boteEstaTemporada = d.boteEstaTemporada;
+    var KARLA = "'Karla', Arial, sans-serif";
+    var BEBAS = "'Bebas Neue', Arial Narrow, sans-serif";
+
+    var col = {
+      paper: resolveColor("var(--paper)"), surface: resolveColor("var(--surface)"),
+      surface2: resolveColor("var(--surface-2)"), ink: resolveColor("var(--ink)"),
+      muted: resolveColor("var(--muted)"), line: resolveColor("var(--line)"),
+      pitch: resolveColor("var(--pitch)"), gold: resolveColor("var(--gold)"),
+      good: resolveColor("var(--good)")
+    };
+
+    var W = 840, PAD = 28, CW = W - PAD*2;
+    var rowH = 38, headH = 34, titleH = 36, gap = 20;
+    var n = totals.length;
+    var headerBlockH = 84;
+    var table1H = titleH + headH + rowH*n;               // clasificacion
+    var table2H = titleH + headH + rowH*n + rowH;         // cuentas + fila total
+    var table3H = titleH + headH + rowH*n;                // bizum
+    var boteH = titleH + 58 + 44;                         // dos filas de bote
+    var footerH = 30;
+    var H = PAD*2 + headerBlockH + table1H + gap + table2H + gap + table3H + gap + boteH + footerH;
+
+    var scale = 2;
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.round(W*scale);
+    canvas.height = Math.round(H*scale);
+    var ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillStyle = col.paper;
+    ctx.fillRect(0, 0, W, H);
+
+    var y = PAD;
+
+    ctx.fillStyle = col.ink;
+    ctx.font = "26px " + BEBAS;
+    ctx.fillText("⚽ Comunio Amiguines 26/27", PAD, y+26);
+    ctx.fillStyle = col.muted;
+    ctx.font = "700 14px " + KARLA;
+    ctx.fillText("Resumen — Jornada " + (maxJ||0) + " / " + TOTAL_JORNADAS, PAD, y+50);
+    y += headerBlockH;
+
+    function sectionTitle(text){
+      ctx.fillStyle = col.pitch;
+      ctx.font = "800 18px " + KARLA;
+      ctx.fillText(text, PAD, y + 22);
+      y += titleH;
+    }
+
+    function headerRow(cols){
+      ctx.fillStyle = col.surface2;
+      ctx.fillRect(PAD, y, CW, headH);
+      ctx.fillStyle = col.muted;
+      cols.forEach(function(c){
+        ctx.font = "700 11px " + KARLA;
+        var tx = c.align === "right" ? PAD + c.x + c.w - 12 : PAD + c.x + (c.pad||12);
+        ctx.textAlign = c.align || "left";
+        ctx.fillText(c.label.toUpperCase(), tx, y + headH/2 + 4);
+      });
+      ctx.textAlign = "left";
+      y += headH;
+    }
+
+    function dataRow(cells, opts){
+      opts = opts || {};
+      if(opts.zebra){ ctx.fillStyle = col.surface; ctx.fillRect(PAD, y, CW, rowH); }
+      cells.forEach(function(c){
+        var maxW = c.w - (c.pad||12) - (c.dot ? 16 : 0) - 8;
+        ctx.font = fitFont(ctx, c.text, maxW, c.bold ? "700" : "500", KARLA, 14, 10);
+        ctx.fillStyle = c.color || col.ink;
+        ctx.textAlign = c.align || "left";
+        var tx;
+        if(c.align === "right"){ tx = PAD + c.x + c.w - (c.pad||12); }
+        else { tx = PAD + c.x + (c.pad||12) + (c.dot ? 16 : 0); }
+        ctx.fillText(c.text, tx, y + rowH/2 + 5);
+      });
+      ctx.textAlign = "left";
+      if(cells[0] && cells[0].dot){
+        ctx.fillStyle = cells[0].dot;
+        ctx.beginPath();
+        ctx.arc(PAD + cells[0].x + (cells[0].pad||12) + 5, y + rowH/2, 5, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.strokeStyle = col.line; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PAD, y+rowH); ctx.lineTo(PAD+CW, y+rowH); ctx.stroke();
+      y += rowH;
+    }
+
+    // 1) Clasificación
+    sectionTitle("🏆 Clasificación");
+    headerRow([
+      {label:"#", x:0, w:50},
+      {label:"Equipo", x:50, w:430},
+      {label:"Puntos", x:480, w:CW-480, align:"right"}
+    ]);
+    totals.forEach(function(t, i){
+      dataRow([
+        {text:String(i+1), x:0, w:50, color:col.muted},
+        {text:t.name, x:50, w:430, dot:resolveColor(t.color), bold:true},
+        {text:String(t.points), x:480, w:CW-480, align:"right", bold:true}
+      ], {zebra: i%2===1});
+    });
+    y += 0;
+
+    y += gap;
+
+    // 2) Cuentas de cada equipo
+    sectionTitle("💰 Cuentas de cada equipo");
+    headerRow([
+      {label:"Equipo", x:0, w:260},
+      {label:"Debe", x:260, w:170, align:"right"},
+      {label:"Liquidado", x:430, w:170, align:"right"},
+      {label:"Pendiente", x:600, w:CW-600, align:"right"}
+    ]);
+    totals.forEach(function(t, i){
+      var pendCol = t.pendiente > 0.001 ? col.gold : col.good;
+      dataRow([
+        {text:t.name, x:0, w:260, dot:resolveColor(t.color), bold:true},
+        {text:euros(t.totalDue), x:260, w:170, align:"right"},
+        {text:euros(t.liquidado), x:430, w:170, align:"right"},
+        {text: t.pendiente>0.001 ? euros(t.pendiente) : "Al día", x:600, w:CW-600, align:"right", bold:true, color:pendCol}
+      ], {zebra: i%2===1});
+    });
+    dataRow([
+      {text:"Total pendiente de liquidar", x:0, w:600, bold:true},
+      {text:euros(totalPendiente), x:600, w:CW-600, align:"right", bold:true, color:col.gold}
+    ], {zebra:false});
+    y += gap;
+
+    // 3) Bizum
+    sectionTitle("💸 Bizum");
+    headerRow([
+      {label:"Equipo", x:0, w:300},
+      {label:"Aportado", x:300, w:180, align:"right"},
+      {label:"Confirmado", x:480, w:CW-480}
+    ]);
+    totals.forEach(function(t, i){
+      var estTxt = t.confirmState==="ok" ? "✔ Confirmado" : (t.confirmState==="pending" ? "Sin confirmar" : "—");
+      var estCol = t.confirmState==="ok" ? col.good : (t.confirmState==="pending" ? col.gold : col.muted);
+      dataRow([
+        {text:t.name, x:0, w:300, dot:resolveColor(t.color), bold:true},
+        {text:euros(t.recibidoBizum), x:300, w:180, align:"right"},
+        {text:estTxt, x:480, w:CW-480, color:estCol, bold:true}
+      ], {zebra: i%2===1});
+    });
+    y += gap;
+
+    // 4) Bote del grupo
+    sectionTitle("🎒 Bote del grupo (para el viaje)");
+    ctx.fillStyle = col.surface2;
+    ctx.fillRect(PAD, y, CW, 58);
+    ctx.fillStyle = col.ink;
+    ctx.font = "700 15px " + KARLA;
+    ctx.fillText("Esta temporada (2026/27)", PAD+12, y+24);
+    ctx.textAlign = "right";
+    ctx.font = "800 17px " + KARLA;
+    ctx.fillStyle = col.pitch;
+    ctx.fillText(euros(boteEstaTemporada), PAD+CW-12, y+24);
+    ctx.textAlign = "left";
+    ctx.fillStyle = col.muted;
+    ctx.font = "600 12px " + KARLA;
+    ctx.fillText("Pendiente de liquidar a tesorería: " + euros(totalPendiente), PAD+12, y+44);
+    y += 58 + 6;
+    ctx.fillStyle = col.surface;
+    ctx.fillRect(PAD, y, CW, 38);
+    ctx.strokeStyle = col.line; ctx.lineWidth = 1; ctx.strokeRect(PAD, y, CW, 38);
+    ctx.fillStyle = col.ink;
+    ctx.font = "700 15px " + KARLA;
+    ctx.fillText("Temporada pasada (2025/26)", PAD+12, y+24);
+    ctx.textAlign = "right";
+    ctx.font = "800 17px " + KARLA;
+    ctx.fillText(euros(BOTE_ANTERIOR), PAD+CW-12, y+24);
+    ctx.textAlign = "left";
+    y += 38 + titleH - 36;
+
+    ctx.fillStyle = col.muted;
+    ctx.font = "500 11px " + KARLA;
+    ctx.fillText("Comunio Amiguines 26/27 · generado " + new Date().toLocaleDateString("es-ES"), PAD, H-PAD+10);
+
+    return await new Promise(function(resolve){
+      canvas.toBlob(function(blob){ resolve(blob); }, "image/png");
+    });
+  }
+
+  async function generateWhatsappImage(){
+    var btn = document.getElementById("btn-generate-image");
+    btn.disabled = true;
+    var prevLabel = btn.textContent;
+    btn.textContent = "Generando…";
+    try{
+      var blob = await buildWhatsappImageBlob();
+      whatsappImageBlob = blob;
+      var url = URL.createObjectURL(blob);
+      var img = document.getElementById("whatsapp-image-preview");
+      img.src = url;
+      document.getElementById("whatsapp-image-wrap").style.display = "block";
+      document.getElementById("btn-copy-image").style.display = "";
+      document.getElementById("btn-download-image").style.display = "";
+    }catch(e){
+      console.error(e);
+      alert("No se pudo generar la imagen. Revisa la consola.");
+    }
+    btn.disabled = false;
+    btn.textContent = prevLabel;
+  }
+
+  async function copyWhatsappImage(){
+    if(!whatsappImageBlob) return;
+    try{
+      await navigator.clipboard.write([new ClipboardItem({"image/png": whatsappImageBlob})]);
+      flashSaved("image-msg");
+    }catch(e){
+      console.error(e);
+      alert("Tu navegador no permite copiar la imagen directamente. Usa \"Descargar imagen\" y adjúntala a mano en WhatsApp.");
+    }
+  }
+
+  function downloadWhatsappImage(){
+    if(!whatsappImageBlob) return;
+    var maxJ = maxPlayedJornada();
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(whatsappImageBlob);
+    a.download = "comunio-resumen-jornada" + (maxJ||0) + ".png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    flashSaved("image-msg");
   }
 
   function tryUnlock(){
@@ -1179,6 +1462,9 @@ const FIREBASE_CONFIG = {
     document.getElementById("save-pagos").addEventListener("click", savePagos);
     document.getElementById("save-settle").addEventListener("click", saveSettle);
     document.getElementById("btn-copy-whatsapp").addEventListener("click", copyWhatsapp);
+    document.getElementById("btn-generate-image").addEventListener("click", generateWhatsappImage);
+    document.getElementById("btn-copy-image").addEventListener("click", copyWhatsappImage);
+    document.getElementById("btn-download-image").addEventListener("click", downloadWhatsappImage);
 
     renderReglas();
 
