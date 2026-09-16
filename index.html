@@ -156,6 +156,25 @@
   .barfill{height:100%; border-radius:6px 2px 2px 6px;}
   .barrow .val{font-variant-numeric:tabular-nums; font-weight:800; text-align:right; font-size:13px; flex:none; white-space:nowrap;}
 
+  /* ---- gráfica de evolución (líneas) ---- */
+  .chart-wrap{position:relative; width:100%;}
+  .chart-wrap svg{width:100%; height:auto; display:block; touch-action:pan-y;}
+  .chart-empty{font-size:13px; color:var(--muted); padding:30px 0; text-align:center;}
+  .chart-tooltip{
+    position:absolute; pointer-events:none; background:var(--surface); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,.14);
+    opacity:0; transition:opacity .12s; white-space:nowrap; z-index:5; top:0; left:0;
+  }
+  .chart-tooltip.show{opacity:1;}
+  .chart-tooltip .tt-title{font-weight:800; margin-bottom:5px; color:var(--ink); font-size:12px;}
+  .chart-tooltip .tt-row{display:flex; align-items:center; gap:7px; margin:3px 0;}
+  .chart-tooltip .tt-key{width:14px; height:2px; border-radius:2px; flex:none;}
+  .chart-tooltip .tt-name{color:var(--muted); flex:1; font-weight:600;}
+  .chart-tooltip .tt-val{font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; margin-left:10px;}
+  .chart-legend{display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:14px;}
+  .chart-legend .lg-item{display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--muted);}
+  .chart-legend .lg-key{width:14px; height:2px; border-radius:2px; flex:none;}
+
   /* ---- jornada chips ---- */
   .jgrid{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;}
   .jchip{
@@ -260,6 +279,16 @@
         <h2>Clasificación por puntos</h2>
         <div class="sub">Suma de puntos Comunio en todas las jornadas jugadas</div>
         <div class="barchart" id="barchart"></div>
+      </div>
+
+      <div class="card">
+        <h2>Evolución de puntos por jornada</h2>
+        <div class="sub">Puntos acumulados de cada equipo después de cada jornada jugada. Pasa el ratón (o el dedo) por la gráfica para ver el detalle de una jornada — el desglose exacto de cada semana también está en la pestaña Jornadas.</div>
+        <div class="chart-wrap" id="linechart-wrap">
+          <svg id="linechart" viewBox="0 0 760 300" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="linechart-tooltip"></div>
+        </div>
+        <div class="chart-legend" id="linechart-legend"></div>
       </div>
 
       <div class="card">
@@ -839,6 +868,177 @@ const FIREBASE_CONFIG = {
     noteEl.innerHTML = usingFallback
       ? '<div class="offline-note">Esta vista usa datos de ejemplo porque Firebase todavía no está configurado (o no se pudo conectar). Sigue el README para conectar tu proyecto — hasta entonces, lo que hagas en el panel Admin no se guardará para los demás.</div>'
       : "";
+
+    renderLineChart();
+  }
+
+  // ---------- gráfica de evolución de puntos (líneas) ----------
+  var lineChartLayout = null; // guarda la geometría del último render, para el hover
+
+  function computePointsSeries(){
+    var jns = Object.keys(jornadasState).map(Number).filter(function(n){
+      var jd = jornadasState[String(n)];
+      return jd && jd.results && TEAMS.some(function(t){ var r = jd.results[t.slug]; return r && r.pts != null; });
+    }).sort(function(a,b){ return a-b; });
+
+    var running = {};
+    var series = {};
+    TEAMS.forEach(function(t){ running[t.slug] = 0; series[t.slug] = []; });
+
+    jns.forEach(function(n){
+      var jd = jornadasState[String(n)];
+      TEAMS.forEach(function(t){
+        var r = jd.results[t.slug];
+        var pts = (r && r.pts != null) ? Number(r.pts) : 0;
+        running[t.slug] += pts;
+        series[t.slug].push(running[t.slug]);
+      });
+    });
+
+    return {jornadas: jns, series: series};
+  }
+
+  function renderLineChart(){
+    var wrap = document.getElementById("linechart-wrap");
+    var svg = document.getElementById("linechart");
+    var legendEl = document.getElementById("linechart-legend");
+    var data = computePointsSeries();
+    var jns = data.jornadas, series = data.series;
+    var n = jns.length;
+
+    legendEl.innerHTML = TEAMS.map(function(t){
+      return '<div class="lg-item"><span class="lg-key" style="background:'+t.color+'"></span>'+t.name+'</div>';
+    }).join("");
+
+    if(n === 0){
+      svg.innerHTML = "";
+      wrap.querySelector(".chart-empty") && wrap.querySelector(".chart-empty").remove();
+      var emptyDiv = document.createElement("div");
+      emptyDiv.className = "chart-empty";
+      emptyDiv.textContent = "Todavía no hay ninguna jornada jugada.";
+      wrap.appendChild(emptyDiv);
+      lineChartLayout = null;
+      return;
+    }
+    var oldEmpty = wrap.querySelector(".chart-empty");
+    if(oldEmpty) oldEmpty.remove();
+
+    var W = 760, H = 300, PAD_L = 40, PAD_R = 14, PAD_T = 14, PAD_B = 26;
+    var plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+    var denom = n > 1 ? (n-1) : 1;
+
+    var allVals = [];
+    TEAMS.forEach(function(t){ series[t.slug].forEach(function(v){ allVals.push(v); }); });
+    var rawMin = Math.min.apply(null, allVals), rawMax = Math.max.apply(null, allVals);
+    var range = Math.max(1, rawMax - rawMin);
+    var yMin = rawMin - range*0.08, yMax = rawMax + range*0.08;
+
+    function xAt(i){ return PAD_L + (n > 1 ? (i/denom)*plotW : plotW/2); }
+    function yAt(v){ return PAD_T + (1 - (v - yMin)/(yMax - yMin)) * plotH; }
+
+    lineChartLayout = {jornadas: jns, series: series, xAt: xAt, W: W, H: H, PAD_L: PAD_L, PAD_R: PAD_R};
+
+    var svgParts = [];
+
+    // gridlines + etiquetas del eje Y (4 niveles)
+    var ticks = 4;
+    for(var k=0; k<=ticks; k++){
+      var v = yMin + (yMax-yMin)*(k/ticks);
+      var yy = yAt(v);
+      svgParts.push('<line x1="'+PAD_L+'" y1="'+yy+'" x2="'+(W-PAD_R)+'" y2="'+yy+'" style="stroke:var(--line); stroke-width:1;" />');
+      svgParts.push('<text x="'+(PAD_L-8)+'" y="'+(yy+3)+'" text-anchor="end" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">'+Math.round(v)+'</text>');
+    }
+
+    // etiquetas del eje X (jornada), con salto si hay muchas
+    var maxLabels = 11;
+    var step = n > maxLabels ? Math.ceil(n/maxLabels) : 1;
+    jns.forEach(function(jn, i){
+      if(i % step !== 0 && i !== n-1) return;
+      svgParts.push('<text x="'+xAt(i)+'" y="'+(H-6)+'" text-anchor="middle" style="font:600 10px \'Karla\',sans-serif; fill:var(--muted);">J'+jn+'</text>');
+    });
+
+    // una línea por equipo, en el orden fijo de TEAMS
+    TEAMS.forEach(function(t){
+      var pts = series[t.slug].map(function(v, i){ return xAt(i)+","+yAt(v); }).join(" L ");
+      svgParts.push('<path d="M '+pts+'" fill="none" style="stroke:'+t.color+'; stroke-width:2.5;" stroke-linecap="round" stroke-linejoin="round" />');
+      // marcador final: anillo en el color de superficie + punto de color
+      var lastV = series[t.slug][n-1];
+      svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="7" style="fill:var(--surface);" />');
+      svgParts.push('<circle cx="'+xAt(n-1)+'" cy="'+yAt(lastV)+'" r="4.5" style="fill:'+t.color+';" />');
+    });
+
+    // línea vertical de cruce (crosshair), oculta hasta el primer hover
+    svgParts.push('<line id="linechart-crosshair" x1="0" y1="'+PAD_T+'" x2="0" y2="'+(H-PAD_B)+'" style="stroke:var(--muted); stroke-width:1; opacity:0;" />');
+
+    svg.setAttribute("viewBox", "0 0 "+W+" "+H);
+    svg.innerHTML = svgParts.join("");
+  }
+
+  function handleLineChartPointer(evt){
+    if(!lineChartLayout) return;
+    var svg = document.getElementById("linechart");
+    var wrap = document.getElementById("linechart-wrap");
+    var tooltip = document.getElementById("linechart-tooltip");
+    var crosshair = document.getElementById("linechart-crosshair");
+    var rect = svg.getBoundingClientRect();
+    if(rect.width === 0) return;
+    var clientX = (evt.touches && evt.touches[0]) ? evt.touches[0].clientX : evt.clientX;
+    var clientY = (evt.touches && evt.touches[0]) ? evt.touches[0].clientY : evt.clientY;
+    var relX = (clientX - rect.left) / rect.width * lineChartLayout.W;
+
+    var jns = lineChartLayout.jornadas, n = jns.length;
+    var best = 0, bestDist = Infinity;
+    for(var i=0;i<n;i++){
+      var d = Math.abs(lineChartLayout.xAt(i) - relX);
+      if(d < bestDist){ bestDist = d; best = i; }
+    }
+
+    if(crosshair){
+      var cx = lineChartLayout.xAt(best);
+      crosshair.setAttribute("x1", cx); crosshair.setAttribute("x2", cx);
+      crosshair.style.opacity = "1";
+    }
+
+    var rows = TEAMS.map(function(t){
+      return {name:t.name, color:t.color, val: lineChartLayout.series[t.slug][best]};
+    }).sort(function(a,b){ return b.val - a.val; });
+
+    tooltip.innerHTML = "";
+    var title = document.createElement("div");
+    title.className = "tt-title";
+    title.textContent = "Jornada " + jns[best];
+    tooltip.appendChild(title);
+    rows.forEach(function(r){
+      var row = document.createElement("div");
+      row.className = "tt-row";
+      var key = document.createElement("span");
+      key.className = "tt-key";
+      key.style.background = r.color;
+      var name = document.createElement("span");
+      name.className = "tt-name";
+      name.textContent = r.name;
+      var val = document.createElement("span");
+      val.className = "tt-val";
+      val.textContent = String(r.val);
+      row.appendChild(key); row.appendChild(name); row.appendChild(val);
+      tooltip.appendChild(row);
+    });
+
+    var wrapRect = wrap.getBoundingClientRect();
+    var left = clientX - wrapRect.left + 16;
+    var top = clientY - wrapRect.top - 10;
+    if(left + 210 > wrapRect.width) left = clientX - wrapRect.left - 226;
+    if(left < 0) left = 4;
+    tooltip.style.left = left + "px";
+    tooltip.style.top = Math.max(0, top) + "px";
+    tooltip.classList.add("show");
+  }
+
+  function hideLineChartTooltip(){
+    var tooltip = document.getElementById("linechart-tooltip");
+    var crosshair = document.getElementById("linechart-crosshair");
+    if(tooltip) tooltip.classList.remove("show");
+    if(crosshair) crosshair.style.opacity = "0";
   }
 
   // ---------- rendering: jornadas ----------
@@ -1465,6 +1665,13 @@ const FIREBASE_CONFIG = {
     document.getElementById("btn-generate-image").addEventListener("click", generateWhatsappImage);
     document.getElementById("btn-copy-image").addEventListener("click", copyWhatsappImage);
     document.getElementById("btn-download-image").addEventListener("click", downloadWhatsappImage);
+
+    var lcWrap = document.getElementById("linechart-wrap");
+    lcWrap.addEventListener("mousemove", handleLineChartPointer);
+    lcWrap.addEventListener("mouseleave", hideLineChartTooltip);
+    lcWrap.addEventListener("touchstart", handleLineChartPointer, {passive:true});
+    lcWrap.addEventListener("touchmove", handleLineChartPointer, {passive:true});
+    lcWrap.addEventListener("touchend", hideLineChartTooltip);
 
     renderReglas();
 
