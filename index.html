@@ -223,6 +223,34 @@
   .prose details summary{cursor:pointer; font-weight:700; color:var(--pitch); font-size:14px;}
   .prose details[open] summary{margin-bottom:8px;}
 
+  /* ---- jugadores ---- */
+  .ptag{
+    display:inline-flex; align-items:center; gap:4px;
+    background:var(--surface-2); border:1px solid var(--line);
+    border-radius:999px; padding:2px 9px; font-size:11px; font-weight:800;
+    letter-spacing:.02em; white-space:nowrap;
+  }
+  .ptag.danger{color:var(--danger); border-color:var(--danger);}
+  .ptag.warn{color:var(--gold); border-color:var(--gold);}
+  .ptag.good{color:var(--good); border-color:var(--good);}
+  .player-list{display:flex; flex-direction:column; gap:0; margin:8px 0 4px;}
+  .player-row{display:flex; align-items:baseline; gap:8px 12px; flex-wrap:wrap; font-size:14px; padding:9px 0; border-bottom:1px solid var(--line);}
+  .player-row:last-child{border-bottom:none;}
+  .player-row .pname{font-weight:800; min-width:150px;}
+  .player-row .pmeta{color:var(--muted); font-size:13px;}
+  .source-note{font-size:12px; color:var(--muted); margin-top:12px; padding-top:10px; border-top:1px dashed var(--line); line-height:1.5;}
+  .source-note a{color:var(--muted);}
+  .update-chip{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:999px;
+    padding:6px 12px; font-size:13px; font-weight:700; color:var(--muted);
+    display:inline-flex; gap:6px; align-items:center;
+  }
+  .update-chip strong{color:var(--ink);}
+  .fixture-mini{display:flex; flex-direction:column; gap:6px; margin:10px 0;}
+  .fixture-mini-row{display:flex; gap:10px; align-items:flex-start; font-size:13px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2);}
+  .fixture-mini-row .fteams{font-weight:800; min-width:170px; color:var(--ink);}
+  .fixture-mini-row .fnote{color:var(--muted);}
+
   /* ---- admin ---- */
   .pin-box{max-width:280px; display:flex; flex-direction:column; gap:10px;}
   input[type="text"], input[type="password"], input[type="number"], select{
@@ -278,6 +306,7 @@
     <button class="tab-btn active" data-tab="resumen" role="tab">Resumen</button>
     <button class="tab-btn" data-tab="graficas" role="tab">Gráficas</button>
     <button class="tab-btn" data-tab="jornadas" role="tab">Jornadas</button>
+    <button class="tab-btn" data-tab="jugadores" role="tab">Jugadores</button>
     <button class="tab-btn" data-tab="reglas" role="tab">Reglas</button>
     <button class="tab-btn" data-tab="admin" role="tab">Admin</button>
   </nav>
@@ -368,6 +397,138 @@
 
         <div id="jornada-detail" style="margin-top:18px;"></div>
       </div>
+    </section>
+
+    <!-- JUGADORES -->
+    <section id="tab-jugadores" class="tabpanel">
+
+      <div class="card">
+        <h2>⚽ Datos de jugadores de LaLiga</h2>
+        <div class="sub">Información real de LaLiga 2026/27 — de todo el campeonato, no solo de vuestras plantillas de Biwenger — recopilada de prensa deportiva y webs especializadas (jornadaperfecta.com, analiticafantasy.com, futbolfantasy.com, soccerway.com) para ayudaros a fichar y a planificar alineaciones.</div>
+        <div class="update-chip">📅 Foto fija tomada el <strong>17/09/2026</strong>, antes de la jornada 7</div>
+        <p style="font-size:13px; color:var(--muted); margin-top:12px; line-height:1.55;">Esta pestaña <strong>no se actualiza sola</strong>: la web no tiene conexión automática a fuentes externas. Cuando queráis los datos al día (por ejemplo, antes de cerrar mercado cada semana), pedidme algo como "actualiza Jugadores" y os refresco todas las categorías con los datos de las últimas jornadas.</p>
+      </div>
+
+      <div class="card">
+        <h2>💰 Chollos (calidad-precio)</h2>
+        <div class="sub">Jugadores baratos que están rindiendo por encima de su precio de mercado.</div>
+        <div class="table-scroll">
+          <table class="data mini-table">
+            <thead><tr><th>Jugador</th><th>Equipo</th><th>Pos.</th><th class="num">Precio aprox.</th></tr></thead>
+            <tbody>
+              <tr><td>Mathew Ryan</td><td>Levante</td><td>POR</td><td class="num">~4,62M€</td></tr>
+              <tr><td>Andrés García</td><td>Getafe</td><td>DEF</td><td class="num">~2,11M€</td></tr>
+              <tr><td>Barragán</td><td>Elche</td><td>DEF</td><td class="num">0,43–0,91M€</td></tr>
+              <tr><td>Nico Guillén</td><td>Sevilla</td><td>MED</td><td class="num">—</td></tr>
+              <tr><td>Jens Jonsson</td><td>Cádiz</td><td>MED</td><td class="num">1,65–2,28M€</td></tr>
+              <tr><td>Sandro</td><td>Huesca</td><td>DEL</td><td class="num">1,46–2,07M€</td></tr>
+              <tr><td>Tete Morente</td><td>Elche</td><td>DEL</td><td class="num">0,89–1,58M€</td></tr>
+              <tr><td>Bryan Gil</td><td>Eibar (cedido)</td><td>DEL</td><td class="num">0,84–0,87M€</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="source-note">Fuente: artículos de jornadaperfecta.com sobre chollos de la temporada 2026/27.</div>
+      </div>
+
+      <div class="card">
+        <h2>🔥 En forma (última jornada jugada, J6)</h2>
+        <div class="sub">Los que más puntos Comunio hicieron en la jornada 6.</div>
+        <div class="table-scroll">
+          <table class="data mini-table">
+            <thead><tr><th>Jugador</th><th>Equipo</th><th class="num">Puntos J6</th></tr></thead>
+            <tbody>
+              <tr><td>Raphinha</td><td>Barcelona</td><td class="num">20</td></tr>
+              <tr><td>Karim Adeyemi <span class="ptag warn">sin verificar</span></td><td>Barcelona</td><td class="num">19</td></tr>
+              <tr><td>Lamine Yamal</td><td>Barcelona</td><td class="num">17</td></tr>
+              <tr><td>Jonathan David <span class="ptag warn">sin verificar</span></td><td>Atlético</td><td class="num">17</td></tr>
+              <tr><td>Robin Le Normand</td><td>Atlético</td><td class="num">16</td></tr>
+              <tr><td>Kang-In Lee <span class="ptag warn">sin verificar</span></td><td>Atlético</td><td class="num">16</td></tr>
+              <tr><td>Miguel Sierra</td><td>Sevilla</td><td class="num">15</td></tr>
+              <tr><td>Alex Baena</td><td>Atlético</td><td class="num">14</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="source-note">Fuente: analiticafantasy.com/puntuaciones-fantasy-marca (jornada 6). ⚠️ Los marcados como <span class="ptag warn">sin verificar</span> tienen un equipo que no hemos podido confirmar por una segunda fuente — revisadlo antes de fichar por si hay algún traspaso reciente mal reflejado.</div>
+      </div>
+
+      <div class="card">
+        <h2>🚑 Lesionados</h2>
+        <div class="sub">Bajas de larga duración y bajas confirmadas para la jornada 7.</div>
+        <div style="font-size:13px; font-weight:800; color:var(--pitch); margin:14px 0 4px;">Baja larga / temporada</div>
+        <div class="player-list">
+          <div class="player-row"><span class="pname">Frenkie de Jong</span><span class="pmeta">Barcelona</span><span class="ptag danger">Rotura de ligamento (rodilla) · fuera hasta 2027</span></div>
+          <div class="player-row"><span class="pname">Roony Bardghji</span><span class="pmeta">Barcelona</span><span class="ptag danger">Baja indefinida</span></div>
+          <div class="player-row"><span class="pname">Kike García</span><span class="pmeta">Espanyol</span><span class="ptag danger">Fuera hasta 2027</span></div>
+          <div class="player-row"><span class="pname">Uche</span><span class="pmeta">Getafe</span><span class="ptag danger">Fuera toda la temporada</span></div>
+        </div>
+        <div style="font-size:13px; font-weight:800; color:var(--pitch); margin:16px 0 4px;">Baja confirmada para la jornada 7</div>
+        <div class="player-list">
+          <div class="player-row"><span class="pname">Rodrygo</span><span class="pmeta">Real Madrid</span></div>
+          <div class="player-row"><span class="pname">Éder Militão</span><span class="pmeta">Real Madrid</span></div>
+          <div class="player-row"><span class="pname">Ferland Mendy</span><span class="pmeta">Real Madrid</span></div>
+          <div class="player-row"><span class="pname">Iago Aspas</span><span class="pmeta">Celta</span></div>
+          <div class="player-row"><span class="pname">Javi Puado</span><span class="pmeta">Espanyol</span></div>
+          <div class="player-row"><span class="pname">Jofre Carreras</span><span class="pmeta">Espanyol</span></div>
+          <div class="player-row"><span class="pname">Diego López</span><span class="pmeta">Valencia</span></div>
+          <div class="player-row"><span class="pname">Sergi Canós</span><span class="pmeta">Valencia</span></div>
+          <div class="player-row"><span class="pname">Sadiq</span><span class="pmeta">Valencia</span></div>
+          <div class="player-row"><span class="pname">Aitor Ruibal</span><span class="pmeta">Real Betis</span></div>
+          <div class="player-row"><span class="pname">Diego Llorente</span><span class="pmeta">Real Betis</span></div>
+          <div class="player-row"><span class="pname">Nico Williams</span><span class="pmeta">Athletic</span></div>
+          <div class="player-row"><span class="pname">Pedri</span><span class="pmeta">Barcelona</span></div>
+          <div class="player-row"><span class="pname">Pablo Barrios</span><span class="pmeta">Atlético</span></div>
+        </div>
+        <div class="source-note">Fuente: jornadaperfecta.com/blog/lesionados-j7-26-27 y soccerway.com (que además recoge algunas dudas de última hora, como Julián Álvarez, Sørloth o Carvajal).</div>
+      </div>
+
+      <div class="card">
+        <h2>🟥 Sancionados para la jornada 7</h2>
+        <div class="sub">Solo hay 4 casos confirmados esta semana; el resto de clubes no tienen jugadores sancionados para la J7.</div>
+        <div class="player-list">
+          <div class="player-row"><span class="pname">Angeliño</span><span class="pmeta">Deportivo</span><span class="ptag danger">Roja directa</span></div>
+          <div class="player-row"><span class="pname">Omar El Hilali</span><span class="pmeta">Espanyol</span><span class="ptag danger">Roja directa</span></div>
+          <div class="player-row"><span class="pname">Mika Mármol</span><span class="pmeta">Las Palmas</span><span class="ptag danger">Expulsado</span></div>
+          <div class="player-row"><span class="pname">Alberto Moreno</span><span class="pmeta">Villarreal</span><span class="ptag danger">Expulsado</span></div>
+        </div>
+        <div class="source-note">Fuente: jornadaperfecta.com/blog/sancionados-laliga-j7-26-27 y futbolfantasy.com/laliga/sancionados.</div>
+      </div>
+
+      <div class="card">
+        <h2>🟨 Apercibidos (a una tarjeta de la sanción)</h2>
+        <div class="empty-note">Todavía no hay datos fiables de apercibidos con 4 amarillas esta temporada — es normal, hace falta que se disputen más jornadas para que se acumulen tarjetas. Volved a consultarlo dentro de una o dos semanas.</div>
+      </div>
+
+      <div class="card">
+        <h2>⏱️ Minutos jugados por posición</h2>
+        <div class="empty-note">Las fuentes abiertas con minutos reales desglosados por posición (FBref, Sofascore, LaLiga oficial) están bloqueadas o no son accesibles para leer automáticamente en este momento, así que no hemos podido montar un ranking fiable de defensas, centrocampistas y delanteros. Lo único que hemos podido confirmar es la lista de porteros que están jugando como titulares indiscutibles:</div>
+        <div class="player-list" style="margin-top:10px;">
+          <div class="player-row"><span class="pname">Jan Oblak</span><span class="pmeta">Atlético</span></div>
+          <div class="player-row"><span class="pname">Thibaut Courtois</span><span class="pmeta">Real Madrid</span></div>
+          <div class="player-row"><span class="pname">Joan García</span><span class="pmeta">Barcelona</span></div>
+          <div class="player-row"><span class="pname">Unai Simón</span><span class="pmeta">Athletic</span></div>
+          <div class="player-row"><span class="pname">Álvaro Valles</span><span class="pmeta">Real Betis</span></div>
+        </div>
+        <div class="source-note">Fuente: betbrothers.es (previsión de titulares, no minutos acumulados reales). Pedidme una actualización más adelante en la temporada y volveré a intentar sacar minutos reales por posición.</div>
+      </div>
+
+      <div class="card">
+        <h2>📋 Posibles alineaciones — jornada 7</h2>
+        <div class="sub">Los 10 partidos de la jornada. Las alineaciones probables completas se publican como gráficos interactivos (no como texto), así que aquí tenéis el partido y, cuando la hemos podido confirmar, alguna duda o baja relevante — para el resto, mejor consultar la previa directamente antes de que cierre el mercado.</div>
+        <div class="fixture-mini">
+          <div class="fixture-mini-row"><span class="fteams">Espanyol – Elche</span><span class="fnote">Espanyol sin Javi Puado, Jofre Carreras y Omar El Hilali (sancionado).</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Athletic – Alavés</span><span class="fnote">Athletic sin Nico Williams.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Osasuna – Rayo Vallecano</span><span class="fnote">Previa con dudas de última hora; ver jornadaperfecta.com.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Celta – Racing de Santander</span><span class="fnote">Celta sin Iago Aspas.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Atlético – Real Madrid</span><span class="fnote">Atlético sin Pablo Barrios; Real Madrid sin Rodrygo, Éder Militão y Ferland Mendy.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Getafe – Málaga</span><span class="fnote">Sin detalle adicional confirmado.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Deportivo – Real Betis</span><span class="fnote">Betis sin Aitor Ruibal y Diego Llorente.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Sevilla – Barcelona</span><span class="fnote">Barcelona sin Pedri; Sevilla con Nico Guillén y Miguel Sierra como referencia en forma.</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Villarreal – Levante</span><span class="fnote">Villarreal sin Alberto Moreno (sancionado).</span></div>
+          <div class="fixture-mini-row"><span class="fteams">Valencia – Real Sociedad</span><span class="fnote">Valencia sin Diego López, Sergi Canós y Sadiq.</span></div>
+        </div>
+        <div class="source-note">Fuente: futbolfantasy.com/laliga/posibles-alineaciones y jornadaperfecta.com/onces-posibles.</div>
+      </div>
+
     </section>
 
     <!-- REGLAS -->
