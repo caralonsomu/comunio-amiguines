@@ -251,6 +251,18 @@
   .fixture-mini-row .fteams{font-weight:800; min-width:170px; color:var(--ink);}
   .fixture-mini-row .fnote{color:var(--muted);}
 
+  .lineup-match{border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin:0 0 14px; background:var(--surface-2);}
+  .lineup-match-head{font-weight:800; font-size:14px; color:var(--pitch); margin-bottom:2px;}
+  .lineup-match-when{font-size:11px; color:var(--muted); font-weight:600; margin-bottom:10px;}
+  .lineup-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){ .lineup-grid{grid-template-columns:1fr;} }
+  .lineup-team h4{font-size:13px; margin-bottom:5px; color:var(--ink); text-transform:uppercase; letter-spacing:.02em;}
+  .lineup-team .xi{font-size:13px; line-height:1.55; color:var(--ink);}
+  .lineup-team .xi em{color:var(--gold); font-style:normal; font-weight:700;}
+  .lineup-team .missing{font-size:12px; color:var(--muted); font-style:italic; margin-top:5px;}
+  .lineup-team .bajas{font-size:12px; color:var(--muted); margin-top:7px; line-height:1.5;}
+  .lineup-team .bajas strong{color:var(--danger); font-weight:800;}
+
   /* ---- admin ---- */
   .pin-box{max-width:280px; display:flex; flex-direction:column; gap:10px;}
   input[type="text"], input[type="password"], input[type="number"], select{
@@ -404,51 +416,45 @@
 
       <div class="card">
         <h2>⚽ Datos de jugadores de LaLiga</h2>
-        <div class="sub">Información real de LaLiga 2026/27 — de todo el campeonato, no solo de vuestras plantillas de Biwenger — recopilada de prensa deportiva y webs especializadas (jornadaperfecta.com, analiticafantasy.com, futbolfantasy.com, soccerway.com) para ayudaros a fichar y a planificar alineaciones.</div>
+        <div class="sub">Información real de LaLiga EA Sports (Primera División) 2026/27 — solo los 20 equipos de Primera, nada de Segunda — recopilada de prensa deportiva y webs de Biwenger/fantasy (jornadaperfecta.com, futbolfantasy.com, comuniate.com, analiticafantasy.com) para ayudaros a fichar y a planificar alineaciones. Los precios de "Chollos" son el valor de mercado <strong>dentro de Biwenger</strong> (el juego), no el valor real de fichaje.</div>
         <div class="update-chip">📅 Foto fija tomada el <strong>17/09/2026</strong>, antes de la jornada 7</div>
         <p style="font-size:13px; color:var(--muted); margin-top:12px; line-height:1.55;">Esta pestaña <strong>no se actualiza sola</strong>: la web no tiene conexión automática a fuentes externas. Cuando queráis los datos al día (por ejemplo, antes de cerrar mercado cada semana), pedidme algo como "actualiza Jugadores" y os refresco todas las categorías con los datos de las últimas jornadas.</p>
       </div>
 
       <div class="card">
-        <h2>💰 Chollos (calidad-precio)</h2>
-        <div class="sub">Jugadores baratos que están rindiendo por encima de su precio de mercado.</div>
+        <h2>💰 Chollos (calidad-precio en Biwenger)</h2>
+        <div class="sub">Jugadores de Primera División baratos <strong>en Biwenger</strong> que están rindiendo por encima de su precio en el juego. Precio = valor de mercado en Biwenger, no valor real de fichaje.</div>
         <div class="table-scroll">
           <table class="data mini-table">
-            <thead><tr><th>Jugador</th><th>Equipo</th><th>Pos.</th><th class="num">Precio aprox.</th></tr></thead>
+            <thead><tr><th>Jugador</th><th>Equipo</th><th>Pos.</th><th class="num">Precio Biwenger (aprox.)</th></tr></thead>
             <tbody>
-              <tr><td>Mathew Ryan</td><td>Levante</td><td>POR</td><td class="num">~4,62M€</td></tr>
-              <tr><td>Andrés García</td><td>Getafe</td><td>DEF</td><td class="num">~2,11M€</td></tr>
-              <tr><td>Barragán</td><td>Elche</td><td>DEF</td><td class="num">0,43–0,91M€</td></tr>
-              <tr><td>Nico Guillén</td><td>Sevilla</td><td>MED</td><td class="num">—</td></tr>
-              <tr><td>Jens Jonsson</td><td>Cádiz</td><td>MED</td><td class="num">1,65–2,28M€</td></tr>
-              <tr><td>Sandro</td><td>Huesca</td><td>DEL</td><td class="num">1,46–2,07M€</td></tr>
-              <tr><td>Tete Morente</td><td>Elche</td><td>DEL</td><td class="num">0,89–1,58M€</td></tr>
-              <tr><td>Bryan Gil</td><td>Eibar (cedido)</td><td>DEL</td><td class="num">0,84–0,87M€</td></tr>
+              <tr><td>Xavi Espart</td><td>Barcelona</td><td>DEF</td><td class="num">~5,33M€</td></tr>
+              <tr><td>Dani Ceballos</td><td>Real Betis</td><td>MED</td><td class="num">~3,77M€</td></tr>
+              <tr><td>Péter Gulácsi</td><td>Villarreal</td><td>POR</td><td class="num">~2,11M€</td></tr>
+              <tr><td>Marcos Fernández</td><td>Espanyol</td><td>DEL</td><td class="num">~1,47M€</td></tr>
+              <tr><td>Giorgi Tsitaishvili</td><td>Rayo Vallecano</td><td>DEL</td><td class="num">~0,67M€</td></tr>
+              <tr><td>Aarón Mayol</td><td>Valencia</td><td>MED</td><td class="num">~0,47M€</td></tr>
+              <tr><td>Arda Güler <span class="ptag warn">precio alto</span></td><td>Real Madrid</td><td>MED</td><td class="num">~12,97M€</td></tr>
             </tbody>
           </table>
         </div>
-        <div class="source-note">Fuente: artículos de jornadaperfecta.com sobre chollos de la temporada 2026/27.</div>
+        <div class="source-note">Fuente: <a href="https://www.jornadaperfecta.com/blog/chollos-fantasy-biwenger-j7-laliga-26-27/" target="_blank" rel="noopener">jornadaperfecta.com — chollos Biwenger J7</a>. Equipos verificados con webs oficiales de cada club. Arda Güler está marcado como <span class="ptag warn">precio alto</span> porque, aunque la fuente lo lista como chollo por rendimiento, su precio ya es de los caros de la liga — inclúyelo solo si buscáis rendimiento, no ganga real.</div>
       </div>
 
       <div class="card">
-        <h2>🔥 En forma (última jornada jugada, J6)</h2>
-        <div class="sub">Los que más puntos Comunio hicieron en la jornada 6.</div>
+        <h2>🔥 En forma (últimas 3 jornadas: J4+J5+J6)</h2>
+        <div class="sub">Jugadores de Primera División con más puntos acumulados en las últimas 3 jornadas jugadas (no solo la última suelta).</div>
         <div class="table-scroll">
           <table class="data mini-table">
-            <thead><tr><th>Jugador</th><th>Equipo</th><th class="num">Puntos J6</th></tr></thead>
+            <thead><tr><th>Jugador</th><th>Equipo</th><th class="num">J4</th><th class="num">J5</th><th class="num">J6</th><th class="num">Total</th></tr></thead>
             <tbody>
-              <tr><td>Raphinha</td><td>Barcelona</td><td class="num">20</td></tr>
-              <tr><td>Karim Adeyemi <span class="ptag warn">sin verificar</span></td><td>Barcelona</td><td class="num">19</td></tr>
-              <tr><td>Lamine Yamal</td><td>Barcelona</td><td class="num">17</td></tr>
-              <tr><td>Jonathan David <span class="ptag warn">sin verificar</span></td><td>Atlético</td><td class="num">17</td></tr>
-              <tr><td>Robin Le Normand</td><td>Atlético</td><td class="num">16</td></tr>
-              <tr><td>Kang-In Lee <span class="ptag warn">sin verificar</span></td><td>Atlético</td><td class="num">16</td></tr>
-              <tr><td>Miguel Sierra</td><td>Sevilla</td><td class="num">15</td></tr>
-              <tr><td>Alex Baena</td><td>Atlético</td><td class="num">14</td></tr>
+              <tr><td>Lamine Yamal</td><td>Barcelona</td><td class="num">16</td><td class="num">9</td><td class="num">6</td><td class="num"><strong>31</strong></td></tr>
+              <tr><td>Fermín López</td><td>Barcelona</td><td class="num">6</td><td class="num">17</td><td class="num">3</td><td class="num"><strong>26</strong></td></tr>
             </tbody>
           </table>
         </div>
-        <div class="source-note">Fuente: analiticafantasy.com/puntuaciones-fantasy-marca (jornada 6). ⚠️ Los marcados como <span class="ptag warn">sin verificar</span> tienen un equipo que no hemos podido confirmar por una segunda fuente — revisadlo antes de fichar por si hay algún traspaso reciente mal reflejado.</div>
+        <div class="empty-note" style="padding:10px 0 0;">Raphinha (Barcelona) está teniendo un tramo histórico — 8 goles y 3 asistencias en sus últimos 6 partidos, con 3 dobletes seguidos en LaLiga, algo que no se veía desde Messi en 2012/13 — pero no hemos podido confirmar con garantías su desglose exacto de puntos J4/J5/J6, así que no le ponemos una cifra por no arriesgarnos a inventarla.</div>
+        <div class="source-note">Fuentes: <a href="https://www.jornadaperfecta.com/jugador/yamal" target="_blank" rel="noopener">jornadaperfecta.com — ficha Yamal</a>, <a href="https://www.comuniate.com/en/noticias/37781/don-fermin-lopez-4-goals-and-2-assists-in-just-four-matchdays" target="_blank" rel="noopener">comuniate.com — Fermín López</a>, <a href="https://www.si.com/es-us/futbol/raphinha-y-lamine-yamal-imparables-suman-20-participaciones-de-gol-en-seis-partidos" target="_blank" rel="noopener">SI.com — Raphinha y Yamal</a>. Que las tres referencias sean del Barcelona no es un sesgo nuestro: el equipo lleva 6 de 6 victorias y 26 goles a favor este arranque de liga.</div>
       </div>
 
       <div class="card">
@@ -477,17 +483,17 @@
           <div class="player-row"><span class="pname">Nico Williams</span><span class="pmeta">Athletic</span></div>
           <div class="player-row"><span class="pname">Pedri</span><span class="pmeta">Barcelona</span></div>
           <div class="player-row"><span class="pname">Pablo Barrios</span><span class="pmeta">Atlético</span></div>
+          <div class="player-row"><span class="pname">Joan García <span class="ptag warn">de última hora</span></span><span class="pmeta">Barcelona</span><span class="ptag danger">Lesión (sustituido al descanso el 16/09) · probable baja</span></div>
         </div>
-        <div class="source-note">Fuente: jornadaperfecta.com/blog/lesionados-j7-26-27 y soccerway.com (que además recoge algunas dudas de última hora, como Julián Álvarez, Sørloth o Carvajal).</div>
+        <div class="source-note">Fuente: jornadaperfecta.com/blog/lesionados-j7-26-27 y soccerway.com (que además recoge algunas dudas de última hora, como Julián Álvarez, Sørloth o Carvajal). Baja de Joan García confirmada por <a href="https://www.cope.es/programas/tiempo-de-juego/noticias/joan-garcia-sustituido-descanso-barcelona-racing-dos-dias-convocatoria-luis-fuente-20260916_3438048.html" target="_blank" rel="noopener">Cope</a> — su portería la cubriría Szczęsny, aunque eso no está confirmado oficialmente todavía.</div>
       </div>
 
       <div class="card">
         <h2>🟥 Sancionados para la jornada 7</h2>
-        <div class="sub">Solo hay 4 casos confirmados esta semana; el resto de clubes no tienen jugadores sancionados para la J7.</div>
+        <div class="sub">Solo hay 3 casos confirmados esta semana en Primera División; el resto de clubes no tienen jugadores sancionados para la J7.</div>
         <div class="player-list">
           <div class="player-row"><span class="pname">Angeliño</span><span class="pmeta">Deportivo</span><span class="ptag danger">Roja directa</span></div>
           <div class="player-row"><span class="pname">Omar El Hilali</span><span class="pmeta">Espanyol</span><span class="ptag danger">Roja directa</span></div>
-          <div class="player-row"><span class="pname">Mika Mármol</span><span class="pmeta">Las Palmas</span><span class="ptag danger">Expulsado</span></div>
           <div class="player-row"><span class="pname">Alberto Moreno</span><span class="pmeta">Villarreal</span><span class="ptag danger">Expulsado</span></div>
         </div>
         <div class="source-note">Fuente: jornadaperfecta.com/blog/sancionados-laliga-j7-26-27 y futbolfantasy.com/laliga/sancionados.</div>
@@ -500,11 +506,11 @@
 
       <div class="card">
         <h2>⏱️ Minutos jugados por posición</h2>
-        <div class="empty-note">Las fuentes abiertas con minutos reales desglosados por posición (FBref, Sofascore, LaLiga oficial) están bloqueadas o no son accesibles para leer automáticamente en este momento, así que no hemos podido montar un ranking fiable de defensas, centrocampistas y delanteros. Lo único que hemos podido confirmar es la lista de porteros que están jugando como titulares indiscutibles:</div>
+        <div class="empty-note">Las fuentes abiertas con minutos reales desglosados por posición (FBref, Sofascore, LaLiga oficial) están bloqueadas o no son accesibles para leer automáticamente en este momento, así que no hemos podido montar un ranking fiable de defensas, centrocampistas y delanteros. Lo único que hemos podido confirmar es la lista de porteros que estaban jugando como titulares indiscutibles (ojo: Joan García se lesionó esta semana, ver Lesionados):</div>
         <div class="player-list" style="margin-top:10px;">
           <div class="player-row"><span class="pname">Jan Oblak</span><span class="pmeta">Atlético</span></div>
           <div class="player-row"><span class="pname">Thibaut Courtois</span><span class="pmeta">Real Madrid</span></div>
-          <div class="player-row"><span class="pname">Joan García</span><span class="pmeta">Barcelona</span></div>
+          <div class="player-row"><span class="pname">Joan García</span><span class="pmeta">Barcelona</span><span class="ptag warn">lesionado, ver Lesionados</span></div>
           <div class="player-row"><span class="pname">Unai Simón</span><span class="pmeta">Athletic</span></div>
           <div class="player-row"><span class="pname">Álvaro Valles</span><span class="pmeta">Real Betis</span></div>
         </div>
@@ -513,20 +519,183 @@
 
       <div class="card">
         <h2>📋 Posibles alineaciones — jornada 7</h2>
-        <div class="sub">Los 10 partidos de la jornada. Las alineaciones probables completas se publican como gráficos interactivos (no como texto), así que aquí tenéis el partido y, cuando la hemos podido confirmar, alguna duda o baja relevante — para el resto, mejor consultar la previa directamente antes de que cierre el mercado.</div>
-        <div class="fixture-mini">
-          <div class="fixture-mini-row"><span class="fteams">Espanyol – Elche</span><span class="fnote">Espanyol sin Javi Puado, Jofre Carreras y Omar El Hilali (sancionado).</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Athletic – Alavés</span><span class="fnote">Athletic sin Nico Williams.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Osasuna – Rayo Vallecano</span><span class="fnote">Previa con dudas de última hora; ver jornadaperfecta.com.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Celta – Racing de Santander</span><span class="fnote">Celta sin Iago Aspas.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Atlético – Real Madrid</span><span class="fnote">Atlético sin Pablo Barrios; Real Madrid sin Rodrygo, Éder Militão y Ferland Mendy.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Getafe – Málaga</span><span class="fnote">Sin detalle adicional confirmado.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Deportivo – Real Betis</span><span class="fnote">Betis sin Aitor Ruibal y Diego Llorente.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Sevilla – Barcelona</span><span class="fnote">Barcelona sin Pedri; Sevilla con Nico Guillén y Miguel Sierra como referencia en forma.</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Villarreal – Levante</span><span class="fnote">Villarreal sin Alberto Moreno (sancionado).</span></div>
-          <div class="fixture-mini-row"><span class="fteams">Valencia – Real Sociedad</span><span class="fnote">Valencia sin Diego López, Sergi Canós y Sadiq.</span></div>
+        <div class="sub">Once probable de cada equipo en los 10 partidos de la jornada. Cuando no se ha podido confirmar el once completo (muchas veces se publica como gráfico, no como texto), lo decimos claro en vez de rellenar nombres — mejor un dato parcial pero fiable que uno completo inventado.</div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Atlético de Madrid – Real Madrid</div>
+          <div class="lineup-match-when">Domingo 20/09, 16:15</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Atlético de Madrid</h4>
+              <div class="xi">Oblak; Pubill, Hancko, Cristian Romero, Grimaldo; Hjulmand, Kang-in Lee, Baena; Marcos Llorente, Jonathan David, Lookman.</div>
+              <div class="bajas"><strong>Bajas:</strong> Sørloth, Pablo Barrios. Duda: Julián Álvarez.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Real Madrid</h4>
+              <div class="xi">Courtois; Dumfries, Huijsen, Konaté, Cucurella; Valverde, Tchouaméni, Bellingham; Güler, Mbappé, Vinícius.</div>
+              <div class="bajas"><strong>Bajas:</strong> Éder Militão, Ferland Mendy, Rodrygo. Suplentes destacados: Rüdiger, Bernardo Silva, Diomandé.</div>
+            </div>
+          </div>
         </div>
-        <div class="source-note">Fuente: futbolfantasy.com/laliga/posibles-alineaciones y jornadaperfecta.com/onces-posibles.</div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Sevilla – Barcelona</div>
+          <div class="lineup-match-when">Sábado 19/09, 21:00</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Sevilla</h4>
+              <div class="xi">Vlachodimos; Suazo, Iglesias, Kike Salas, Kochorashvili; Agoumé, Fofana, Castrín, Sierra; Ejuke, Stassin.</div>
+              <div class="bajas"><strong>Bajas:</strong> Sangalli, Rubén Vargas.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Barcelona</h4>
+              <div class="xi"><em>Once no confirmado.</em> Probables sueltos: Lamine Yamal, Pau Cubarsí, Gerard Martín, João Cancelo, Rodri, Pedri, Raphinha, Fermín López, Anthony Gordon. Portero por decidir tras la baja de Joan García (Szczęsny, sin confirmar oficialmente). Lewandowski, sin confirmar.</div>
+              <div class="bajas"><strong>Bajas:</strong> Joan García, Frenkie de Jong, Roony Bardghji.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">RCD Espanyol – Elche CF</div>
+          <div class="lineup-match-when">Viernes 18/09, 21:00</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Espanyol</h4>
+              <div class="xi">Dmitrovic; Unai Núñez, Leandro Cabrera, Clemens Riedel, Javi Hernández; Edu Expósito, Urko González de Zárate; Roberto Fernández, Bryan Zaragoza, Tyrhys Dolan.</div>
+              <div class="missing">Falta 1 nombre para completar el once — no confirmado.</div>
+              <div class="bajas"><strong>Bajas:</strong> Omar El Hilali (sancionado), Gorosabel, Jofre Carreras, Javi Puado, Kike García.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Elche</h4>
+              <div class="xi">Dituro; Revivo, Chust, Bigas, Germán Valera; Redondo, Villar, Buonanotte; Fer Niño, Tete Morente.</div>
+              <div class="missing">Falta 1 nombre para completar el once — no confirmado.</div>
+              <div class="bajas"><strong>Bajas:</strong> Yago Santiago.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Athletic Club – Deportivo Alavés</div>
+          <div class="lineup-match-when">Sábado 19/09, 16:15</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Athletic Club</h4>
+              <div class="xi">Unai Simón; Areso, Laporte, Yuri Berchiche, Nico Williams<em>*</em>; Galarreta, Sancet, Gerenabarrena; Iñaki Williams, Robert Navarro.</div>
+              <div class="missing">Falta 1 nombre. <em>*</em>Nico Williams normalmente juega de extremo, no de lateral — puede que la fuente tenga un error de posición. Jauregizar, riesgo de entrar.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Alavés</h4>
+              <div class="xi">Sivera; Tenaglia, Ángel Pérez, Ibáñez, Koski; Blanco, Abde Rebbach, Denis Suárez; Boyé, Toni Martínez.</div>
+              <div class="missing">Falta 1 nombre. Denis Suárez compite con Carles Aleñá por el puesto.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">CA Osasuna – Rayo Vallecano</div>
+          <div class="lineup-match-when">Sábado 19/09, 14:00</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Osasuna</h4>
+              <div class="xi"><em>Once no confirmado</em> (los datos disponibles eran del partido anterior). Sergio Herrera vuelve a la portería (alternativa Aitor Fernández); Budimir confirmado como delantero titular.</div>
+              <div class="missing">Duda entre Bretones y Diego Rico en el lateral izquierdo.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Rayo Vallecano</h4>
+              <div class="xi">Audero; Ratiu, Lejeune, Pedrosa; Álvaro García, Pathé Ciss, Unai López; Camello, De Frutos.</div>
+              <div class="missing">Faltan 2 nombres para completar el once.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Celta de Vigo – Racing de Santander</div>
+          <div class="lineup-match-when">Sábado 19/09, 18:30 · Balaídos</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Celta de Vigo</h4>
+              <div class="xi">Radu; Javi Rueda, Lago, Sebastián Cáceres, Marcos Alonso <em>o</em> Galán; Ilaix Moriba, Febas <em>(duda)</em>; Jutglà, Hugo Álvarez, Hugo González <em>o</em> Swedberg.</div>
+              <div class="bajas"><strong>Baja importante:</strong> Iago Aspas.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Racing de Santander</h4>
+              <div class="xi">Agirrezabala; Mantilla, Pablo Ramón, Belocian, Jorge Salinas; Iván Martín, Pablo García, Iñigo Vicente; Almeida <em>o</em> Prati, Zabiri.</div>
+              <div class="missing">Almeida vuelve de sanción y compite con Prati por un puesto.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Villarreal CF – Levante UD</div>
+          <div class="lineup-match-when">Domingo 20/09, 18:30</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Villarreal</h4>
+              <div class="xi">Gulácsi; Renato, Pau Navarro, Carlos Romero, Mouriño; Gueye; Buchanan, Pépé, Gerard Moreno, Mikautadze.</div>
+              <div class="missing">Falta 1 nombre en el mediocentro — una fuente mencionaba a un jugador que no juega en el Villarreal, así que preferimos dejarlo sin confirmar antes que dar un nombre erróneo.</div>
+              <div class="bajas"><strong>Baja:</strong> Juan Foyth.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Levante</h4>
+              <div class="xi"><em>Once no confirmado.</em> Probables: Mathew Ryan (portero), Roger Brugué (delantero, capitán).</div>
+              <div class="bajas"><strong>Bajas:</strong> Álex Primo, Hugo Sotelo, Etta Eyong. Duda: Thiago Fernández vs Víctor García.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Valencia CF – Real Sociedad</div>
+          <div class="lineup-match-when">Domingo 20/09, 21:00 · Mestalla</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Valencia</h4>
+              <div class="xi">Dimitrievski <em>o</em> Óscar Sánchez (dudan las fuentes); Maffeo, Guido Rodríguez, Gayà, De Haas; Pepelu, Javi Guerra, Ugrinic, Danjuma; Diego López, Hugo Duro.</div>
+              <div class="bajas"><strong>Bajas:</strong> César Tárrega, Diakhaby, Copete, Sergi Canós, Sadiq.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Real Sociedad</h4>
+              <div class="xi">Remiro; Aramburu, Sarr <em>o</em> Jon Martín, Zubeldia, Sergio Gómez; Soler, Yangel Herrera, Sucic; Oyarzabal, Guedes.</div>
+              <div class="missing">Kubo compite con Guedes por un puesto en ataque.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">Getafe CF – Málaga CF</div>
+          <div class="lineup-match-when">Domingo 20/09, 14:00</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Getafe</h4>
+              <div class="xi"><em>Once no confirmado</em> (los datos disponibles eran del partido anterior). Piezas probables: Gudelj, Zaid, Djene, Satriano, Ünal, Terrats.</div>
+              <div class="missing">Duda entre Francho, Andrés García e Iván Azón.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Málaga</h4>
+              <div class="xi"><em>Once no confirmado</em> (los datos disponibles eran del partido anterior). Piezas probables: Alfonso Herrero (portero), Berrocal, Larrubia.</div>
+              <div class="missing">Riesgo de suplencia: Ramón, Einar Galilea.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lineup-match">
+          <div class="lineup-match-head">RC Deportivo de La Coruña – Real Betis</div>
+          <div class="lineup-match-when">Domingo 20/09, 18:30 · Riazor</div>
+          <div class="lineup-grid">
+            <div class="lineup-team">
+              <h4>Deportivo</h4>
+              <div class="xi">Leo Román; Ximo Navarro, José María Giménez, Lucas Noubi, Giacomo Quagliata; Mario Soriano, Lorenzo Amatucci, Luismi Cruz; Aubameyang, Yeremay Hernández <em>(duda)</em>.</div>
+              <div class="missing">Falta 1 nombre para completar el once.</div>
+              <div class="bajas"><strong>Bajas:</strong> Angeliño (sancionado), Noé Carrillo.</div>
+            </div>
+            <div class="lineup-team">
+              <h4>Real Betis</h4>
+              <div class="xi"><em>Once no confirmado.</em> Probables sueltos: Bartra, Marc Roca, Isco, Abde, Cucho Hernández.</div>
+              <div class="bajas"><strong>Baja:</strong> Aitor Ruibal. Duda: Diego Llorente.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="source-note">Fuentes: <a href="https://www.futbolfantasy.com/laliga/posibles-alineaciones" target="_blank" rel="noopener">futbolfantasy.com/laliga/posibles-alineaciones</a>, <a href="https://www.jornadaperfecta.com/onces-posibles" target="_blank" rel="noopener">jornadaperfecta.com/onces-posibles</a> y las previas específicas de cada partido en esas mismas webs. <em>o</em> indica duda entre dos jugadores para el mismo puesto; cuando falta algún nombre para completar el once, es porque no lo hemos podido confirmar, no un error nuestro.</div>
       </div>
 
     </section>
